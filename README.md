@@ -1,2 +1,2 @@
 # AsBuiltReport.Rubrik.CDM
-Repository for Rubrik As Built Report.
+Repository for Rubrik As Built Report
