@@ -105,25 +105,78 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         } # End InfoLevel -ge 3     
 
                         # Cluster Info - Networking
-                        Section -Style Heading3 'Network Settings' { 
+                        Section -Style Heading3 'Network Settings' {
+                            
+                            # Gather Information for level 1-5
+                            $NodeDetails = Get-RubrikClusterNetworkInterface | Select -Property interfaceName, interfaceType, node, ipAddresses, netmask
+                            $DNSDetails = Get-RubrikDNSSetting
+                            $DNSDetails = [ordered]@{
+                                'DNS Servers'       = ($DNSDetails.DNSServers | Sort-Object) -join ', '
+                                'Search Domains'    = ($DNSDetails.DNSSearchDomain | Sort-Object) -join ', '
+                            }
+                            $ProxyDetails = Get-RubrikProxySetting
+
+                            # Information for Level 3 and above
+                            if ($InfoLevel.Cluster -lt 3) {
+                                $NTPDetails = Get-RubrikNTPServer | Select -Property server
+                                $NetworkThrottleDetails = Get-RubrikNetworkThrottle | Select -Property resourceId, isEnabled, defaultthrottleLimit
+                            }
+                            else {
+                                $NTPServers = Get-RubrikNTPServer 
+                                $NTPDetails = @()
+                                foreach ($ntpserver in $NTPServers) {
+                                    $inObj = [ordered]@{
+                                        'server' = $ntpserver.server
+                                        'symmetricKeyId'  = $ntpserver.symmetricKey.keyId
+                                        'symmetricKey'  = $ntpserver.symmetricKey.key
+                                        'symmetricKeyType'  = $ntpserver.symmetricKey.keyType
+                                    }
+                                    $NTPDetails += [pscustomobject]$inObj
+                                }
+                                $NetworkThrottleDetails = @()
+                                $NetworkThrottles = Get-RubrikNetworkThrottle
+                                foreach ($throttle in $NetworkThrottles) {
+                                    $inObj = [ordered]@{
+                                        'resourceId' = $throttle.resourceId
+                                        'isEnabled'  = $throttle.isEnabled
+                                        'defaultThrottleLimit' = $throttle.defaultThrottleLimit
+                                    }
+                                    if ($null -eq $throttle.scheduledThrottles) { $strSchedule = ''}
+                                    else {
+                                        $strSchedule = New-Object Text.StringBuilder 
+                                        foreach ($schedule in $throttle.scheduledThrottles) {
+                                            $strSchedule.Append("Start Time: $($schedule.startTime)")
+                                            $strSchedule.Append(" | End Time: $($schedule.endTime)")
+                                            $strSchedule.Append(" | Days Of Week: $($schedule.daysOfWeek -Join ', ')")
+                                            $strSchedule.Append(" | Throttle Limit: $($schedule.throttleLimit)")
+                                            $strSchedule.Append("`n")
+                                        }
+                                    }
+                                    $inObj.add('scheduledThrottles', $strSchedule)
+                                    $NetworkThrottleDetails += [pscustomobject]$inObj
+                                }
+                            }
                             Section -Style Heading4 'Cluster Interfaces' { 
-                                $NodeDetails = Get-RubrikClusterNetworkInterface | Select -Property interfaceName, interfaceType, node, ipAddresses, netmask
                                 $NodeDetails | Table -Name 'Cluster Node Information' 
                             }
                             Section -Style Heading4 'DNS Configuration' { 
-                                $DNSDetails = Get-RubrikDNSSetting
-                                $DNSSettings = [ordered]@{
-                                    'DNS Servers'       = ($DNSDetails.DNSServers | Sort-Object) -join ', '
-                                    'Search Domains'    = ($DNSDetails.DNSSearchDomain | Sort-Object) -join ', '
-                                }
-                                [pscustomobject]$DNSSettings | Table -Name 'DNS Configuration' -List
+                                [pscustomobject]$DNSDetails | Table -Name 'DNS Configuration' -List
                             }
-                            Section -Style Heading4 'NTP Configuration' { 
-                                $NTPDetails = Get-RubrikNTPServer 
+                            Section -Style Heading4 'NTP Configuration' {  
                                 $NTPDetails | Table -Name 'NTP Configuration'
                             }
+                            Section -Style Heading4 'Network Throttling' {
+                                $NetworkThrottleDetails | Table -Name 'Network Throttling'
+                            }
+                            Section -Style Heading4 'Proxy Server' {
+                                    $ProxyDetails | Table -Name 'Proxy Configuration'
+                            }
 
-                        }
+
+                        } # End Heading 3 - Network Settings
+                        Section -Style Heading3 'Notification Settings' {
+                            
+                        } # End Heading 3 - NOtification Settings
                     } #End Heading 2
                 }# end of Infolevel 1
   
