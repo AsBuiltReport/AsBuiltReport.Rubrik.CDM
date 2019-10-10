@@ -112,7 +112,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             }
                             Section -Style Heading4 'DNS Configuration' { 
                                 $DNSDetails = Get-RubrikDNSSetting
-                                #($VMHostNetwork.DnsConfig.Address | Sort-Object) -join ', ' 
                                 $DNSSettings = [ordered]@{
                                     'DNS Servers'       = ($DNSDetails.DNSServers | Sort-Object) -join ', '
                                     'Search Domains'    = ($DNSDetails.DNSSearchDomain | Sort-Object) -join ', '
