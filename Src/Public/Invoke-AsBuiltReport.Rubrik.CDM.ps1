@@ -106,7 +106,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
 
                         # Cluster Info - Networking
                         Section -Style Heading3 'Network Settings' {
-                            
+                            Paragraph "The following contains network related settings for the cluster"
                             # Gather Information for level 1-5
                             $NodeDetails = Get-RubrikClusterNetworkInterface | Select -Property interfaceName, interfaceType, node, ipAddresses, netmask
                             $DNSDetails = Get-RubrikDNSSetting
@@ -169,14 +169,50 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $NetworkThrottleDetails | Table -Name 'Network Throttling'
                             }
                             Section -Style Heading4 'Proxy Server' {
-                                    $ProxyDetails | Table -Name 'Proxy Configuration'
+                                if ($ProxyDetails.length -gt 0) { $ProxyDetails | Table -Name 'Proxy Configuration' }
+                                else { Paragraph "There are currently no proxy servers configured on this cluster"}
                             }
 
 
                         } # End Heading 3 - Network Settings
                         Section -Style Heading3 'Notification Settings' {
+                            Paragraph "The following contains notification settings configured on the cluster"
+                            # Gather Information
+                            $EmailDetails = Get-RubrikEmailSetting | Select -Property id, smtpHostname, smtpPort, smtpUsername, fromEmailId, smtpSecurity
                             
+                            $SNMPInfo = Get-RubrikSNMPSetting
+                            $inObj = [ordered]@{
+                                    'communityString' = $($SNMPInfo.communityString)
+                                    'snmpAgentPort'  = $SNMPInfo.snmpAgentPort
+                                    'isEnabled'  = $SNMPInfo.isEnabled
+                            }
+                            $strTraps = New-Object Text.StringBuilder 
+                            foreach ($trap in $SNMPInfo.trapReceiverConfigs) {
+                                $strTraps.Append("Address: $($trap.address)")
+                                $strTraps.Append(" | Port: $($trap.port)")
+                                $strTraps.Append("`n")
+                            }
+                            $inObj.add('trapReceiverConfigs', $strTraps)
+                            $SNMPDetails = [pscustomobject]$inObj
+
+                            $NotificationDetails = Get-RubrikNotificationSetting | Select -Property id,eventTypes, snmpAddresses, emailAddresses,shouldSendToSyslog
+                            
+                            
+                            Section -Style Heading4 'Email Settings' { 
+                                if ($EmailDetails.Length -gt 0) { $EmailDetails | Table -Name 'SNMP Settings' }
+                                else { Paragraph "There are currently no email settings configured on this cluster"}
+                            }
+                            Section -Style Heading4 'SNMP Settings' { 
+                                $SNMPDetails | Table -Name 'SNMP Settings' 
+                            }
+                            Section -Style Heading4 'Notification Settings' { 
+                                $NotificationDetails | Table -Name 'Notification Settings' 
+                            }
                         } # End Heading 3 - NOtification Settings
+                        Section -Style Heading3 'Security Settings' {
+                            Paragraph "The following contains security related settings configured on the cluster"
+                            # Gather Information
+                        } # End Heading 3 - Security Settings
                     } #End Heading 2
                 }# end of Infolevel 1
   
