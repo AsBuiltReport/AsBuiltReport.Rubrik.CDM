@@ -51,7 +51,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
         }
         if ($RubrikCluster) {
             $ClusterInfo = Get-RubrikClusterInfo
-
+            
             Section -Style Heading1 $($ClusterInfo.Name) {
                 if ($InfoLevel.Cluster -ge 1) {
                     Section -Style Heading2 'Cluster Settings' { 
@@ -70,8 +70,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         if ($InfoLevel.Cluster -ge 3) {
                             $ClusterSummary.Add('# CPU Cores', $ClusterInfo.CPUCoresCount)
                             $ClusterSummary.Add('Total Memory (GB)', $ClusterInfo.MemoryCapacityinGB)
-                            $ClusterSummary.Add('HDD Capacity (TB)', $ClusterInfo.DiskCapacityInTb)
-                            $ClusterSummary.Add('Flash Capacity (TB)', $ClusterInfo.FlashCapacityInTb)
                             $ClusterSummary.Add('Timezone', $ClusterInfo.timezone.timezone)
                         }
                         # InfoLevel 5 (Comprehensive) adds the rest!
@@ -96,6 +94,32 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         # Cluster Information Table
                         [pscustomobject]$ClusterSummary | Table -Name $ClusterSummary.Name -ColumnWidths 30,70 -List
                         
+
+                        $StorageInfo = Get-RubrikClusterStorage
+                        
+                        $StorageSummary = [ordered]@{
+                            'Total Usable Storage (TB)' = $StorageInfo.TotalUsableStorageInTb
+                            'Used Storage (TB)' = $StorageInfo.UsedStorageInTb
+                            'Available Storage (TB)' = $StorageInfo.AvailableStorageInTb
+                        }
+                        if ($InfoLevel.Cluster -ge 3) {
+                            $StorageSummary.Add('Archival Storage Used (TB)',$StorageInfo.ArchivalUsageInTb)
+                            $StorageSummary.Add('Live Mount Storage Used (GB)', $StorageInfo.LiveMountStorageInGb)
+                        }
+                        if ($InfoLevel.Cluster -eq 5) {
+                            $StorageSummary.Add('Local Data Reduction Percentage', $StorageInfo.LocalDataReductionPercent)
+                            $StorageSummary.Add('Archival Data Reduction Percentage', $StorageInfo.ArchivalDataReductionPercent)
+                            $StorageSummary.Add('Average Daily Growth (GB)', $StorageInfo.AverageGrowthPerDayInGb)
+                            $StorageSummary.Add('Estimated Runway (days)', $StorageInfo.EstimatedRunwayInDays)
+                        }
+
+                        
+                        Section -Style Heading3 'Cluster Storage Details' {
+                            [pscustomobject]$StorageSummary | Table -Name "Cluster Storage Details" -ColumnWidths 30,70 -List
+                        }
+
+
+
                         # Node Overview Table
                         if ($InfoLevel.Cluster -ge 3) {
                             Section -Style Heading3 'Member Nodes' { 
