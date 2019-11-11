@@ -319,6 +319,15 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Paragraph "The following contains backup related settings configured on the cluster"
                             # Gather Information
                             # Global Configs for all InfoLevels
+                            $GuestOSCredentials = Get-RubrikGuestOsCredential | Select username, domain
+                            $BackupServiceDeployment = Get-RubrikBackupServiceDeployment | Select @{Name="Automatically Deploy RBS"; Expression = {$_.isAutomatic}}
+
+                            Section -Style Heading4 'Guest OS Credentials' { 
+                                $GuestOSCredentials | Table -Name 'Guest OS Credentials' -ColumnWidths 50,50
+                            }
+                            Section -Style Heading4 'Miscellaneous Backup Configurations' { 
+                                $BackupServiceDeployment | Table -Name 'Miscellaneous Backup Configuration' -ColumnWidths 30,70 -List
+                            }
                         } # End Heading 3 - Backup Settings
                         Section -Style Heading3 'Backup Sources' {
                             Paragraph "The following contains information around the backup sources configured on the cluster"
