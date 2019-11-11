@@ -236,7 +236,105 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         Section -Style Heading3 'Security Settings' {
                             Paragraph "The following contains security related settings configured on the cluster"
                             # Gather Information
+                            # Global Configs for all InfoLevels
+                            $IPMIInformation = Get-RubrikIPMI
+                            $inObj =[ordered] @{
+                                'IPMI Available'        = $IPMIInformation.isAvailable
+                                'HTTPS Access'          = $IPMIInformation.access.https
+                                'iKVM Access'           = $IPMIInformation.access.iKvm
+                                'SSH Access'            = $IPMIInformation.access.ssh
+                                'Virtual Media Access'  = $IPMIInformation.access.virtualMedia
+                            }
+                            $IPMIDetails = [pscustomobject]$inObj
+                            $SecurityInformation = Get-RubrikSecurityClassification | Select classificationColor, classificationMessage
+                            
+                            
+
+                            #Individual configs for specifed InfoLevels
+                            if ($InfoLevel.Cluster -lt 3) {
+                                $SMBDomainInformation = Get-RubrikSMBDomain | Select Name, Status, ServiceAccount
+                                $SyslogInformation = Get-RubrikSyslogServer | Select hostname, protocol
+                                $UserDetails = Get-RubrikUser | Select Username, FirstName, LastName, emailAddress
+                                $LDAPDetails = Get-RubrikLDAP | Select Name, DomainType, IntialRefreshStatus
+                            }
+                            else {
+                                $SMBSecurityInformation = Get-RubrikSMBSecurity
+                                $SMBDomainInformation = Get-RubrikSMBDomain | Select Name, Status, ServiceAccount, isStickySmbService, @{Name = 'Force SMB Security'; Expression = {$SMBSecurityInformation.enforceSmbSecurity}}
+                                $SyslogInformation = Get-RubrikSyslogServer | Select id, hostname, port, protocol
+                                $UserInformation = Get-RubrikUser | Select UserName, FirstName, LastName, emailAddress, AuthDomainID, ID, @{ Name = 'Permissions';  Expression = {Get-RubrikUserRole -id $_.id | Select @{Name='Perms'; Expression = {"ReadOnlyAdmin = $($_.readOnlyAdmin)`nAdmin = $($_.admin)`nOrgAdmin = $($_.orgAdmin)`nManagedVolumeAdmin = $($_.managedVolumeAdmin)`nOrganization=$($_.organization)`nManagedVolumeUser = $($_.managedVolumeUser)`nendUser = $($_.endUser)"}}}}
+                                $UserDetails = @()
+                                foreach ($user in $UserInformation) {
+                                    $inObj =[ordered] @{
+                                        'Username'        = $user.Username
+                                        'First Name'          = $user.FirstName
+                                        'Last Name'           = $user.LastName
+                                        'Email Address'   = $User.emailAddress
+                                        'Auth Domain ID'  = $user.AuthDomainID
+                                        'ID'                = $user.id
+                                        'Permissions'   = $user.permissions.perms
+                                    } 
+                                    $UserDetails += [pscustomobject]$inObj
+                                }
+                                $LDAPDetails = Get-RubrikLDAP | Select Name, DomainType, InitialRefreshStatus, dynamicDnsName, serviceAccount, bindUserName, @{Name="AdvancedOptions"; Expression = {$_.advancedOptions | Out-String}}
+                            }
+                            
+                            # Add User Permissions to $UserInformation
+                            
+                            Section -Style Heading4 'IPMI Settings' { 
+                                $IPMIDetails | Table -Name 'IPMI Settings' 
+                            }
+
+                            Section -Style Heading4 'SMB Domains' { 
+                                $SMBDomainInformation | Table -Name 'SMB Domains' 
+                            }
+
+                            Section -Style Heading4 'Syslog Settings' { 
+                                $SyslogInformation | Table -Name 'Syslog Settings' 
+                            }
+
+                            Section -Style Heading4 'Security Classification Settings' { 
+                                $SecurityInformation | Table -Name 'Security Classification Settings' 
+                            }
+                            
+                            if ($InfoLevel.Cluster -lt 3) {
+                                Section -Style Heading4 'User Details' { 
+                                    $UserDetails | Table -Name 'User Details'
+                                }
+
+                                Section -Style Heading4 'LDAP Settings' { 
+                                    $LDAPDetails | Table -Name 'LDAP Settings' 
+                                }
+                            }
+                            else {
+                                Section -Style Heading4 'User Details' { 
+                                    $UserDetails | Table -Name 'User Details' -ColumnWidths 20,80 -List
+                                }
+
+                                Section -Style Heading4 'LDAP Settings' { 
+                                    $LDAPDetails | Table -Name 'LDAP Settings' -ColumnWidths 20,80 -List
+                                }
+                            }                          
                         } # End Heading 3 - Security Settings
+                        Section -Style Heading3 'Backup Settings' {
+                            Paragraph "The following contains backup related settings configured on the cluster"
+                            # Gather Information
+                            # Global Configs for all InfoLevels
+                        } # End Heading 3 - Backup Settings
+                        Section -Style Heading3 'Backup Sources' {
+                            Paragraph "The following contains information around the backup sources configured on the cluster"
+                            # Gather Information
+                            # Global Configs for all InfoLevels
+                        } # End Heading 3 Backup Sources
+                        Section -Style Heading3 'Replication Configuration' {
+                            Paragraph "The following contains information replication configuration on the cluster"
+                            # Gather Information
+                            # Global Configs for all InfoLevels
+                        } # End Heading 3 Replication Configuration
+                        Section -Style Heading3 'Archive Targets' {
+                            Paragraph "The following contains information around configured archive targets on the cluster"
+                            # Gather Information
+                            # Global Configs for all InfoLevels
+                        } # End Heading 3 Archive Targets
                     } #End Heading 2
                 }# end of Infolevel 1
   
