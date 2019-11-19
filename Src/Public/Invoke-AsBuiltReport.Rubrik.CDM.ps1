@@ -333,6 +333,57 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Paragraph "The following contains information around the backup sources configured on the cluster"
                             # Gather Information
                             # Global Configs for all InfoLevels
+                           
+                            # Level based info gathering
+                            if ($InfoLevel.Cluster -lt 3) {
+                                $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select name, hostname, username
+                                $VMwareVCD = Get-RubrikVCD | where {$_.PrimaryClusterId -eq (Get-RubrikSetting).id} | Select name, hostname, username, @{Name="ConnectionStatus"; Expression={$_.connectionStatus.status}}
+                                $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" | Select name, hostname, username,  @{Name="ConnectionStatus"; Expression={$_.connectionStatus.status}}
+                                $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select name, hostname, runAsAccount, status
+                                $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" | Select name, hostname, operatingSystem, status
+                                $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" | Select name, hostname, operatingSystem, status
+                            }
+                            else {
+                                $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select name, hostname, username, @{Name="VM Linking"; Expression = {$_.conflictResolutionAuthz}}, caCerts
+                                $VMwareVCD = Get-RubrikVCD | where {$_.PrimaryClusterId -eq (Get-RubrikSetting).id} | Select name, hostname, username, @{Name="ConnectionStatus"; Expression={$_.connectionStatus.status}}, @{Name="ConnectionMessage"; Expression={$_.connectionStatus.message}}, caCerts
+                                $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" | Select name, hostname, username,  @{Name="ConnectionStatus"; Expression={$_.connectionStatus.status}}, caCerts
+                                $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select name, hostname, runAsAccount, status, shouldDeployAgent
+                                $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" -DetailedObject | Select name, hostname, operatingSystem, status, compressionEnabled, agentId, mssqlCbtDriverInstalled, mssqlCbtEnabled, mmsqlCbtEffectiveStatus, hostVfdDriverState, hostVfdEnabled, isRelic
+                                $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" -DetailedObject | Select name, hostname, operatingSystem, status, compressionEnabled, agentId, mssqlCbtDriverInstalled, mssqlCbtEnabled, mmsqlCbtEffectiveStatus, hostVfdDriverState, hostVfdEnabled, isRelic
+                            }
+
+                            
+                            Section -Style Heading4 'VMware vCenter Servers' { 
+                                Paragraph "The following table outlines the VMware vCenter Servers which have been added to the Rubrik cluster"
+                                $VMwarevCenter | Table -Name 'VMware vCenter Server' -ColumnWidths 30,70 -List
+                            } 
+                            Section -Style Heading4 'VMware vCloud Director Clusters' { 
+                                Paragraph "The following table outlines the VMware vCloud Director clusters which have been added to the Rubrik cluster"
+                                $VMwareVCD | Table -Name 'VMware vCloud Director Clusters' -ColumnWidths 30,70 -List
+                            } 
+                            Section -Style Heading4 'Hyper-V SCVMM Servers' { 
+                                Paragraph "The following table outlines the SCVMM Servers which have been added to the Rubrik cluster"
+                                $SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' -ColumnWidths 30,70 -List
+                            } 
+                            Section -Style Heading4 'Nutanix Clusters' { 
+                                Paragraph "The following table outlines the Nutanix clusters which have been added to the Rubrik cluster"
+                                $NutanixClusters | Table -Name 'Nutanix Clusters' -ColumnWidths 30,70 -List
+                            }
+                            #-=MWP=- - could try converting params to splats to reduce code here.  Also, add the same logic of tables for < 3 and lists for > 3 to sections above
+                            Section -Style Heading4 'Windows Hosts' { 
+                                Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
+                                if ($InfoLevel.Cluster -lt 3) { $WindowsHosts | Table -Name 'Windows Hosts' -Table } 
+                                else { $WindowsHosts | Table -Name 'Windows Hosts' -ColumnWidths 30,70 -List }
+                            }
+                            Section -Style Heading4 'Linux Hosts' { 
+                                Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
+                                if ($InfoLevel.Cluster -lt 3) { $LinuxHosts | Table -Name 'Linux Hosts' -Table } 
+                                else { $Linux | Table -Name 'Linux Hosts' -ColumnWidths 30,70 -List }
+                            }
+
+
+
+                            
                         } # End Heading 3 Backup Sources
                         Section -Style Heading3 'Replication Configuration' {
                             Paragraph "The following contains information replication configuration on the cluster"
