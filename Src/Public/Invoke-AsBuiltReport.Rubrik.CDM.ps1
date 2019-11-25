@@ -378,22 +378,159 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Section -Style Heading4 'Linux Hosts' { 
                                 Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
                                 if ($InfoLevel.Cluster -lt 3) { $LinuxHosts | Table -Name 'Linux Hosts' -Table } 
-                                else { $Linux | Table -Name 'Linux Hosts' -ColumnWidths 30,70 -List }
+                                else { $LinuxHosts | Table -Name 'Linux Hosts' -ColumnWidths 30,70 -List }
                             }
-
-
-
                             
+                            #-=MWP=- Could add the following to this section in a later version 
+                            # - Storage Arrays
+                            # - Cloud Sources (AWS Protection)
+
                         } # End Heading 3 Backup Sources
                         Section -Style Heading3 'Replication Configuration' {
-                            Paragraph "The following contains information replication configuration on the cluster"
+                            Paragraph "The following contains information  around the replication configuration on the cluster"
                             # Gather Information
                             # Global Configs for all InfoLevels
+                            #-=MWP=- also ensure all column names are in plain english - both below and above. - also, check for 0 results
+                            $ReplicationSources = Get-RubrikReplicationSource | Select sourceClusterName, sourceClusterAddress, sourceClusterUuid, replicationSetup
+                            $ReplicationTargets = Get-RubrikReplicationTarget | Select targetClusterName, targetClusterAddress, targetClusterUuid, replicationSetup
+                            
+                            Section -Style Heading4 'Replication Sources' { 
+                                Paragraph "The following table outlines locations which have been configured as a replication source to this cluster"
+                                $ReplicationSources | Table -Name 'Replication Sources'
+                            }
+                            Section -Style Heading4 'Replication Targets' { 
+                                Paragraph "The following table outlines locations which have been configured as a replication targets for this cluster"
+                                $ReplicationTargets | Table -Name 'Replication Sources'
+                            }
                         } # End Heading 3 Replication Configuration
                         Section -Style Heading3 'Archive Targets' {
                             Paragraph "The following contains information around configured archive targets on the cluster"
                             # Gather Information
                             # Global Configs for all InfoLevels
+                            $ArchiveTargets = Get-RubrikArchive | Select name, bucket, currentState, locationType
+                            if ($InfoLevel.Cluster -lt 3) {
+                                Section -Style Heading4 'S3 Targets' {
+                                    if ( ($ArchiveTargets | Where-Object {$_.locationType -eq 'S3'}  | Measure-Object ).count -gt 0) {
+                                        $ArchiveTargets | Where-Object {$_.locationType -eq 'S3'} | Table -Name 'S3 Archives'
+                                    }
+                                    else { Paragraph "There are currenly no S3 targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'Glacier Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Measure-Object  ).count -gt 0) {
+                                        $ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Table -Name 'Glacier Archives'
+                                    }
+                                    else { Paragraph "There are currenly no Glacier targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'Azure Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Measure-Object ).count -gt 0) {
+                                        $ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Table -Name 'Azure Archives'
+                                    }
+                                    else { Paragraph "There are currenly no Azure targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'Google Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Measure-Object  ).count -gt 0) {
+                                        $ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Table -Name 'Google Archives'
+                                    }
+                                    else { Paragraph "There are currenly no Google targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'NFS Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Nfs'}  | Measure-Object ).count -gt 0) {
+                                        $ArchiveTargets | Where-Object {$_.locationType -eq 'NFS'} | Table -Name 'NFS Archives'
+                                    }
+                                    else { Paragraph "There are currenly no NFS targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'Tape Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Qstar'} | Measure-Object  ).count -gt 0) {
+                                        $ArchiveTargets | Where-Object {$_.locationType -eq 'QStar'} | Table -Name 'Tape Archives'
+                                    }
+                                    else { Paragraph "There are currenly no tape targets configured on the cluster."}
+                                }
+                            }
+                            else {
+                                Section -Style Heading4 'S3 Archive Targets' {
+                                    if ( ($ArchiveTargets | Where-Object {$_.locationType -eq 'S3'}  | Measure-Object ).count -gt 0) {
+                                        $S3Targets = Get-RubrikArchive -ArchiveType S3 -DetailedObject | Select @{Name="Name"; Expression={$_.definition.name}},
+                                                                    @{Name="Bucket";Expression={$_.definition.bucket}},   
+                                                                    @{Name="Region";Expression={$_.definition.defaultRegion}},
+                                                                    @{Name="Storage Class";Expression={$_.definition.storageClass}},
+                                                                    @{Name="Consolidation Enabled";Expression={$_.definition.isConsolidationEnabled}},
+                                                                    @{Name="Encryption Type";Expression={$_.definition.encryptionType}},
+                                                                    @{Name="Access Key";Expression={$_.definition.accessKey}},
+                                                                    @{Name="Compute Enabled";Expression={$_.definition.isComputeEnabled}},
+                                                                    @{Name="Security Group";Expression={$_.definition.defaultComputeNetworkConfig.securityGroupId}},
+                                                                    @{Name="VPC";Expression={$_.definition.defaultComputeNetworkConfig.vNetId}},
+                                                                    @{Name="Subnet";Expression={$_.definition.defaultComputeNetworkConfig.subnetId}}
+                                        
+                                        $S3Targets | Table -Name 'S3 Archives' -List -ColumnWidths 30,70
+                                    }
+                                    else { Paragraph "There are currenly no S3 targets configured on the cluster."}
+                                }
+                                #-=MWP=- need Gaia to figure out.
+                                Section -Style Heading4 'Glacier Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Measure-Object  ).count -gt 0) {
+                                        $GlacierTargets = Get-RubrikARchive -ArchiveType Glacier -DetailedObject | Select @{Name="Name";Expression={$_.definition.name}},
+                                            @{Name="Host";Expression={$_.definition.host}},
+                                            @{Name="Export";Expression={$_.definition.exportDir}},
+                                            @{Name="Available Space (TB)";Expression={$_.availableSpace/1TB}}
+                                            @{Name="Auth Type";Expression={$_.definition.authType}},
+                                            @{Name="Version";Expression={$_.definition.nfsVersion}},
+                                            @{Name="Consolidation Enabled";Expression={$_.definition.isConsolidationEnabled}},
+                                            @{Name="File Lock Period (seconds)";Expression={$_.definition.fileLockPeriodInSeconds}},
+                                            @{Name="NFS Options";Expression={$_.definition.otherNfsOptions}}
+                                    }
+                                    else { Paragraph "There are currenly no Glacier targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'Azure Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Measure-Object ).count -gt 0) {
+                                        $AzureTargets = Get-RubrikArchive -ArchiveType Azure -DetailedObject | Select @{Name="Name";Expression={$_.definition.name}},
+                                            @{Name="Bucket";Expression={$_.definition.bucket}},   
+                                            @{Name="Region";Expression={$_.definition.azureComputeSummary.region}},
+                                            @{Name="Storage Account";Expression={$_.definition.azureComputeSummary.generalPurposeStorageAccountName}},
+                                            @{Name="Container Name";Expression={$_.definition.azureComputeSummary.containerName}},
+                                            @{Name="Consolidation Enabled";Expression={$_.definition.isConsolidationEnabled}},
+                                            @{Name="Encryption Type";Expression={$_.definition.encryptionType}},
+                                            @{Name="Access Key";Expression={$_.definition.accessKey}},
+                                            @{Name="Compute Enabled";Expression={$_.definition.isComputeEnabled}},
+                                            @{Name="Security Group";Expression={$_.definition.defaultComputeNetworkConfig.securityGroupId}},
+                                            @{Name="Network";Expression={$_.definition.defaultComputeNetworkConfig.vNetId}},
+                                            @{Name="Subnet";Expression={$_.definition.defaultComputeNetworkConfig.subnetId}},
+                                            @{Name="Resource Group";Expression={$_.definition.defaultComputeNetworkConfig.resourceGroupId}}
+                                        
+                                        $AzureTargets | Table -Name 'Azure Archive Targets' -List -ColumnWidths 30,70
+                                    }
+                                    else { Paragraph "There are currenly no Azure targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'Google Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Measure-Object  ).count -gt 0) {
+                                        #Need GAIA -=MWP=-
+                                    }
+                                    else { Paragraph "There are currenly no Google targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'NFS Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'NFS'} | Measure-Object  ).count -gt 0) {
+                                        $NFSTargets = Get-RubrikARchive -ArchiveType Nfs -DetailedObject | Select @{Name="Name";Expression={$_.definition.name}},
+                                            @{Name="Host";Expression={$_.definition.host}},
+                                            @{Name="Bucket";Expression={$_.definition.bucket}},
+                                            @{Name="Export";Expression={$_.definition.exportDir}},
+                                            @{Name="Available Space (TB)";Expression={$_.availableSpace/1TB}}
+                                            @{Name="Auth Type";Expression={$_.definition.authType}},
+                                            @{Name="Version";Expression={$_.definition.nfsVersion}},
+                                            @{Name="Consolidation Enabled";Expression={$_.definition.isConsolidationEnabled}},
+                                            @{Name="File Lock Period (seconds)";Expression={$_.definition.fileLockPeriodInSeconds}},
+                                            @{Name="NFS Options";Expression={$_.definition.otherNfsOptions}}
+                                        
+                                        $NFSTargets | Table -Name 'NFS Archive Targets' -List -ColumnWidths 30,70
+                                    }
+                                    else { Paragraph "There are currenly no NFS targets configured on the cluster."}
+                                }
+                                Section -Style Heading4 'Tape Targets' {
+                                    if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Qstar'} | Measure-Object  ).count -gt 0) {
+                                        #Need GAIA -=MWP=-
+                                    }
+                                    else { Paragraph "There are currenly no tape targets configured on the cluster."}
+                                }
+
+                            }
                         } # End Heading 3 Archive Targets
                     } #End Heading 2
                 }# end of Infolevel 1
