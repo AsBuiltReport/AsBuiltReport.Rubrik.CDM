@@ -58,6 +58,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         Paragraph ("The following section provides information on the configuration of the Rubrik CDM Cluster $($ClusterInfo.Name)")
                         BlankLine
                         
+                        #-=MWP=- - add some blank lines like the example abbove
                         #Cluster Summary for InfoLevel 1/2 (Summary/Informative)
                         $ClusterSummary = [ordered]@{
                             'Name' = $ClusterInfo.Name
@@ -123,7 +124,10 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         # Node Overview Table
                         if ($InfoLevel.Cluster -ge 3) {
                             Section -Style Heading3 'Member Nodes' { 
-                                $NodeInfo = Get-RubrikNode | Select -Property brikId, id, status, supportTunnel
+                                $NodeInfo = Get-RubrikNode | Select -Property @{Name="Brik ID";Expression={$_.brikId}},
+                                    @{Name="ID";Expression={$_.id}},
+                                    @{Name="Status";Expression={$_.status}},
+                                    @{Name="Support Tunnel";Expression={$_.supportTunnel}}
                                 $NodeInfo | Table -Name "Cluster Node Information" -ColumnWidths 25,12,12,25,25
                             }
                         } # End InfoLevel -ge 3     
@@ -132,7 +136,11 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         Section -Style Heading3 'Network Settings' {
                             Paragraph "The following contains network related settings for the cluster"
                             # Gather Information for level 1-5
-                            $NodeDetails = Get-RubrikClusterNetworkInterface | Select -Property interfaceName, interfaceType, node, ipAddresses, netmask
+                            $NodeDetails = Get-RubrikClusterNetworkInterface | Select -Property @{Name="Interface Name";Expression={$_.interfaceName}},
+                                @{Name="Type";Expression={$_.interfaceType}},
+                                @{Name="Node";Expression={$_.node}},
+                                @{Name="IP Addresses";Expression={$_.ipAddresses}},
+                                @{Name="Subnet Mask";Expression={$_.netmask}}
                             $DNSDetails = Get-RubrikDNSSetting
                             $DNSDetails = [ordered]@{
                                 'DNS Servers'       = ($DNSDetails.DNSServers | Sort-Object) -join ', '
@@ -140,20 +148,22 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             }
                             $ProxyDetails = Get-RubrikProxySetting
 
-                            # Information for Level 3 and above
+                            
                             if ($InfoLevel.Cluster -lt 3) {
-                                $NTPDetails = Get-RubrikNTPServer | Select -Property server
-                                $NetworkThrottleDetails = Get-RubrikNetworkThrottle | Select -Property resourceId, isEnabled, defaultthrottleLimit
+                                $NTPDetails = Get-RubrikNTPServer | Select -Property @{Name="Server";Expression={$_.server}}
+                                $NetworkThrottleDetails = Get-RubrikNetworkThrottle | Select -Property @{Name="Resource ID";Expression={$_.resourceId}}, 
+                                    @{Name="Enabled";Expression={$_.isEnabled}},
+                                    @{Name="Default Throttle Limit";Expression={$_.defaultthrottleLimit}} 
                             }
                             else {
-                                $NTPServers = Get-RubrikNTPServer 
+                                $NTPServers = Get-RubrikNTPServer  
                                 $NTPDetails = @()
                                 foreach ($ntpserver in $NTPServers) {
                                     $inObj = [ordered]@{
-                                        'server' = $ntpserver.server
-                                        'symmetricKeyId'  = $ntpserver.symmetricKey.keyId
-                                        'symmetricKey'  = $ntpserver.symmetricKey.key
-                                        'symmetricKeyType'  = $ntpserver.symmetricKey.keyType
+                                        'Server' = $ntpserver.server
+                                        'Symmetric Key ID'  = $ntpserver.symmetricKey.keyId
+                                        'Symmetric Key'  = $ntpserver.symmetricKey.key
+                                        'Key Type'  = $ntpserver.symmetricKey.keyType
                                     }
                                     $NTPDetails += [pscustomobject]$inObj
                                 }
@@ -161,9 +171,9 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $NetworkThrottles = Get-RubrikNetworkThrottle
                                 foreach ($throttle in $NetworkThrottles) {
                                     $inObj = [ordered]@{
-                                        'resourceId' = $throttle.resourceId
-                                        'isEnabled'  = $throttle.isEnabled
-                                        'defaultThrottleLimit' = $throttle.defaultThrottleLimit
+                                        'Resource ID' = $throttle.resourceId
+                                        'Enabled'  = $throttle.isEnabled
+                                        'Default Throttle Limit' = $throttle.defaultThrottleLimit
                                     }
                                     if ($null -eq $throttle.scheduledThrottles) { $strSchedule = ''}
                                     else {
@@ -176,7 +186,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                             $strSchedule.Append("`n")
                                         }
                                     }
-                                    $inObj.add('scheduledThrottles', $strSchedule)
+                                    $inObj.add('Scheduled Throttles', $strSchedule)
                                     $NetworkThrottleDetails += [pscustomobject]$inObj
                                 }
                             }
@@ -196,8 +206,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 if ($ProxyDetails.length -gt 0) { $ProxyDetails | Table -Name 'Proxy Configuration' }
                                 else { Paragraph "There are currently no proxy servers configured on this cluster"}
                             }
-
-
                         } # End Heading 3 - Network Settings
                         Section -Style Heading3 'Notification Settings' {
                             Paragraph "The following contains notification settings configured on the cluster"
@@ -206,9 +214,9 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             
                             $SNMPInfo = Get-RubrikSNMPSetting
                             $inObj = [ordered]@{
-                                    'communityString' = $($SNMPInfo.communityString)
-                                    'snmpAgentPort'  = $SNMPInfo.snmpAgentPort
-                                    'isEnabled'  = $SNMPInfo.isEnabled
+                                    'Community String' = $($SNMPInfo.communityString)
+                                    'Port'  = $SNMPInfo.snmpAgentPort
+                                    'Enabled'  = $SNMPInfo.isEnabled
                             }
                             $strTraps = New-Object Text.StringBuilder 
                             foreach ($trap in $SNMPInfo.trapReceiverConfigs) {
@@ -216,10 +224,15 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $strTraps.Append(" | Port: $($trap.port)")
                                 $strTraps.Append("`n")
                             }
-                            $inObj.add('trapReceiverConfigs', $strTraps)
+                            $inObj.add('Reciever Configurations', $strTraps)
                             $SNMPDetails = [pscustomobject]$inObj
 
-                            $NotificationDetails = Get-RubrikNotificationSetting | Select -Property id,eventTypes, snmpAddresses, emailAddresses,shouldSendToSyslog
+                            $NotificationDetails = Get-RubrikNotificationSetting | Select -Property @{Name="ID";Expression={$_.id}},
+                                @{Name="Event Types";Expression={$_.eventTypes}},
+                                @{Name="SNMP Addresses";Expression={$_.snmpAddresses}},
+                                @{Name="Email Addresses";Expression={$_.emailAddresses}},
+                                @{Name="Send to Syslog";Expression={$_.souldSendToSyslog}}
+                                
                             
                             
                             Section -Style Heading4 'Email Settings' { 
@@ -246,22 +259,37 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 'Virtual Media Access'  = $IPMIInformation.access.virtualMedia
                             }
                             $IPMIDetails = [pscustomobject]$inObj
-                            $SecurityInformation = Get-RubrikSecurityClassification | Select classificationColor, classificationMessage
-                            
-                            
+                            $SecurityInformation = Get-RubrikSecurityClassification | Select @{N="Color";E={$_.classificationColor}},
+                                @{N="Message";E={$_.classificationMessage}}
+
 
                             #Individual configs for specifed InfoLevels
                             if ($InfoLevel.Cluster -lt 3) {
-                                $SMBDomainInformation = Get-RubrikSMBDomain | Select Name, Status, ServiceAccount
-                                $SyslogInformation = Get-RubrikSyslogServer | Select hostname, protocol
-                                $UserDetails = Get-RubrikUser | Select Username, FirstName, LastName, emailAddress
-                                $LDAPDetails = Get-RubrikLDAP | Select Name, DomainType, IntialRefreshStatus
+                                $SMBDomainInformation = Get-RubrikSMBDomain | Select @{Name="Name";Expression={$_.name}},
+                                    @{Name="Status";Expression={$_.status}},
+                                    @{Name="Service Account";Expression={$_.serviceAccount}}
+                                $SyslogInformation = Get-RubrikSyslogServer | Select @{N="Hostname";E={$_.hostname}},
+                                    @{N="Protocol";E={$_.protocol}} 
+                                $UserDetails = Get-RubrikUser | Select @{N="Username";E={$_.username}},
+                                    @{N="First Name";E={$_.firstName}},
+                                    @{N="Last Name";E={$_.lastName}},
+                                    @{N="Email Address";E={$_.emailAddress}} | Sort-Object -Property Username
+                                $LDAPDetails = Get-RubrikLDAP | Select @{N="Name";E={$_.name}},
+                                    @{N="Domain Type";E={$_.domainType}},
+                                    @{N="Initial Refresh";E={$_.initialRefreshStatus}}
                             }
                             else {
                                 $SMBSecurityInformation = Get-RubrikSMBSecurity
-                                $SMBDomainInformation = Get-RubrikSMBDomain | Select Name, Status, ServiceAccount, isStickySmbService, @{Name = 'Force SMB Security'; Expression = {$SMBSecurityInformation.enforceSmbSecurity}}
-                                $SyslogInformation = Get-RubrikSyslogServer | Select id, hostname, port, protocol
-                                $UserInformation = Get-RubrikUser | Select UserName, FirstName, LastName, emailAddress, AuthDomainID, ID, @{ Name = 'Permissions';  Expression = {Get-RubrikUserRole -id $_.id | Select @{Name='Perms'; Expression = {"ReadOnlyAdmin = $($_.readOnlyAdmin)`nAdmin = $($_.admin)`nOrgAdmin = $($_.orgAdmin)`nManagedVolumeAdmin = $($_.managedVolumeAdmin)`nOrganization=$($_.organization)`nManagedVolumeUser = $($_.managedVolumeUser)`nendUser = $($_.endUser)"}}}}
+                                $SMBDomainInformation = Get-RubrikSMBDomain | Select @{N="Name";E={$_.name}},
+                                    @{N="Status";E={$_.status}},
+                                    @{N="Service Account";E={$_.serviceAccount}},
+                                    @{N="Sticky SMB Service";E={$_.isStickySmbService}},
+                                    @{Name = 'Force SMB Security'; Expression = {$SMBSecurityInformation.enforceSmbSecurity}}
+                                $SyslogInformation = Get-RubrikSyslogServer | Select @{N="ID";E={$_.id}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Port";E={$_.port}}
+                                $UserInformation = Get-RubrikUser | Select UserName, FirstName, LastName, emailAddress, AuthDomainID, ID, 
+                                    @{ Name = 'Permissions';  Expression = {Get-RubrikUserRole -id $_.id | Select @{Name='Perms'; Expression = {"ReadOnlyAdmin = $($_.readOnlyAdmin)`nAdmin = $($_.admin)`nOrgAdmin = $($_.orgAdmin)`nManagedVolumeAdmin = $($_.managedVolumeAdmin)`nOrganization=$($_.organization)`nManagedVolumeUser = $($_.managedVolumeUser)`nendUser = $($_.endUser)"}}}} | Sort-Object -Property Username
                                 $UserDetails = @()
                                 foreach ($user in $UserInformation) {
                                     $inObj =[ordered] @{
@@ -275,11 +303,11 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     } 
                                     $UserDetails += [pscustomobject]$inObj
                                 }
+                                #-=MWP=- fix below
                                 $LDAPDetails = Get-RubrikLDAP | Select Name, DomainType, InitialRefreshStatus, dynamicDnsName, serviceAccount, bindUserName, @{Name="AdvancedOptions"; Expression = {$_.advancedOptions | Out-String}}
                             }
                             
-                            # Add User Permissions to $UserInformation
-                            
+                            # Add User Permissions to $UserInformation                
                             Section -Style Heading4 'IPMI Settings' { 
                                 $IPMIDetails | Table -Name 'IPMI Settings' 
                             }
@@ -319,7 +347,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Paragraph "The following contains backup related settings configured on the cluster"
                             # Gather Information
                             # Global Configs for all InfoLevels
-                            $GuestOSCredentials = Get-RubrikGuestOsCredential | Select username, domain
+                            $GuestOSCredentials = Get-RubrikGuestOsCredential | Select @{N="Username";E={$_.username}}, @{N="Domain";E={$_.domain}}
                             $BackupServiceDeployment = Get-RubrikBackupServiceDeployment | Select @{Name="Automatically Deploy RBS"; Expression = {$_.isAutomatic}}
 
                             Section -Style Heading4 'Guest OS Credentials' { 
@@ -336,48 +364,107 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                            
                             # Level based info gathering
                             if ($InfoLevel.Cluster -lt 3) {
-                                $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select name, hostname, username
-                                $VMwareVCD = Get-RubrikVCD | where {$_.PrimaryClusterId -eq (Get-RubrikSetting).id} | Select name, hostname, username, @{Name="ConnectionStatus"; Expression={$_.connectionStatus.status}}
-                                $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" | Select name, hostname, username,  @{Name="ConnectionStatus"; Expression={$_.connectionStatus.status}}
-                                $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select name, hostname, runAsAccount, status
-                                $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" | Select name, hostname, operatingSystem, status
-                                $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" | Select name, hostname, operatingSystem, status
+                                $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Username";E={$_.username}}
+                                $VMwareVCD = Get-RubrikVCD | where {$_.PrimaryClusterId -eq (Get-RubrikSetting).id} | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}}, 
+                                    @{N="Username";E={$_.username}}, 
+                                    @{Name="Connection Status"; Expression={$_.connectionStatus.status}}
+                                $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Username";E={$_.username}}, 
+                                    @{Name="Connection Status"; Expression={$_.connectionStatus.status}}
+                                $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Run As";E={$_.runAsAccount}},
+                                    @{N="Connection Status";E={$_.status}}
+                                $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Operating System";E={$_.operatingSystem}},
+                                    @{N="Connection Status";E={$_.status}} 
+                                $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Operating System";E={$_.operatingSystem}},
+                                    @{N="Connection Status";E={$_.status}} 
                             }
                             else {
-                                $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select name, hostname, username, @{Name="VM Linking"; Expression = {$_.conflictResolutionAuthz}}, caCerts
-                                $VMwareVCD = Get-RubrikVCD | where {$_.PrimaryClusterId -eq (Get-RubrikSetting).id} | Select name, hostname, username, @{Name="ConnectionStatus"; Expression={$_.connectionStatus.status}}, @{Name="ConnectionMessage"; Expression={$_.connectionStatus.message}}, caCerts
-                                $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" | Select name, hostname, username,  @{Name="ConnectionStatus"; Expression={$_.connectionStatus.status}}, caCerts
-                                $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select name, hostname, runAsAccount, status, shouldDeployAgent
-                                $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" -DetailedObject | Select name, hostname, operatingSystem, status, compressionEnabled, agentId, mssqlCbtDriverInstalled, mssqlCbtEnabled, mmsqlCbtEffectiveStatus, hostVfdDriverState, hostVfdEnabled, isRelic
-                                $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" -DetailedObject | Select name, hostname, operatingSystem, status, compressionEnabled, agentId, mssqlCbtDriverInstalled, mssqlCbtEnabled, mmsqlCbtEffectiveStatus, hostVfdDriverState, hostVfdEnabled, isRelic
+                                $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Username";E={$_.username}}, 
+                                    @{Name="VM Linking"; Expression = {$_.conflictResolutionAuthz}}, 
+                                    @{Name="Certificate";E={$_.caCerts}}
+                                $VMwareVCD = Get-RubrikVCD | where {$_.PrimaryClusterId -eq (Get-RubrikSetting).id} | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}}, 
+                                    @{N="Username";E={$_.username}}, 
+                                    @{Name="Connection Status"; Expression={$_.connectionStatus.status}}, 
+                                    @{Name="Connection Message"; Expression={$_.connectionStatus.message}}, 
+                                    @{N="Certificate";E={$_.caCerts}}
+                                $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Username";E={$_.username}}, 
+                                    @{Name="Connection Status"; Expression={$_.connectionStatus.status}},
+                                    @{N="Certificate";E={$_.caCerts}}
+                                $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Run As";E={$_.runAsAccount}},
+                                    @{N="Connection Status";E={$_.status}},
+                                    @{N="Deploy Agent";E={$_.shouldDeployAgent}}
+                                $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" -DetailedObject  | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Operating System";E={$_.operatingSystem}},
+                                    @{N="Connection Status";E={$_.status}},
+                                    @{N="Compression Enabled";E={$_.compressionEnabled}},
+                                    @{N="Agent ID";E={$_.agentId}},
+                                    @{N="MSSQL CBT Driver Installed";E={$_.mssqlCbtDriverInstalled}},
+                                    @{N="MSSQL CBT Enabled";E={$_.mssqlCbtEnabled}},
+                                    @{N="MSSQL CBT Status";E={$_.mssqlCbtEffectiveStatus}},
+                                    @{N="VFD Driver State";E={$_.hostVfdDriverState}},
+                                    @{N="VFD Enabled";E={$_.hostVfdEnabled}},
+                                    @{N="Is Relic";E={$_.isRelic}}
+                                $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" -DetailedObject | Select @{N="Name";E={$_.name}},
+                                    @{N="Hostname";E={$_.hostname}},
+                                    @{N="Operating System";E={$_.operatingSystem}},
+                                    @{N="Connection Status";E={$_.status}},
+                                    @{N="Compression Enabled";E={$_.compressionEnabled}},
+                                    @{N="Agent ID";E={$_.agentId}},
+                                    @{N="MSSQL CBT Driver Installed";E={$_.mssqlCbtDriverInstalled}},
+                                    @{N="MSSQL CBT Enabled";E={$_.mssqlCbtEnabled}},
+                                    @{N="MSSQL CBT Status";E={$_.mssqlCbtEffectiveStatus}},
+                                    @{N="VFD Driver State";E={$_.hostVfdDriverState}},
+                                    @{N="VFD Enabled";E={$_.hostVfdEnabled}},
+                                    @{N="Is Relic";E={$_.isRelic}}
                             }
 
                             
                             Section -Style Heading4 'VMware vCenter Servers' { 
                                 Paragraph "The following table outlines the VMware vCenter Servers which have been added to the Rubrik cluster"
-                                $VMwarevCenter | Table -Name 'VMware vCenter Server' -ColumnWidths 30,70 -List
+                                if ($InfoLevel.Cluster -lt 3) { $VMwarevCenter | Table -Name 'VMware vCenter Server'}
+                                else {$VMwarevCenter | Table -Name 'VMware vCenter Server' -ColumnWidths 30,70 -List}
                             } 
                             Section -Style Heading4 'VMware vCloud Director Clusters' { 
                                 Paragraph "The following table outlines the VMware vCloud Director clusters which have been added to the Rubrik cluster"
-                                $VMwareVCD | Table -Name 'VMware vCloud Director Clusters' -ColumnWidths 30,70 -List
+                                if ($InfoLevel.Cluster -lt 3) { $VMwareVCD | Table -Name 'VMware vCloud Director Clusters' }
+                                else {$VMwareVCD | Table -Name 'VMware vCloud Director Clusters' -ColumnWidths 30,70 -List}
                             } 
                             Section -Style Heading4 'Hyper-V SCVMM Servers' { 
                                 Paragraph "The following table outlines the SCVMM Servers which have been added to the Rubrik cluster"
-                                $SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' -ColumnWidths 30,70 -List
+                                if ($InfoLevel.Cluster -lt 3) { $SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' }
+                                else {$SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' -ColumnWidths 30,70 -List }
                             } 
                             Section -Style Heading4 'Nutanix Clusters' { 
                                 Paragraph "The following table outlines the Nutanix clusters which have been added to the Rubrik cluster"
-                                $NutanixClusters | Table -Name 'Nutanix Clusters' -ColumnWidths 30,70 -List
+                                if ($InfoLevel.Cluster -lt 3) {$NutanixClusters | Table -Name 'Nutanix Clusters' }
+                                else {$NutanixClusters | Table -Name 'Nutanix Clusters' -ColumnWidths 30,70 -List}
                             }
-                            #-=MWP=- - could try converting params to splats to reduce code here.  Also, add the same logic of tables for < 3 and lists for > 3 to sections above
                             Section -Style Heading4 'Windows Hosts' { 
                                 Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
-                                if ($InfoLevel.Cluster -lt 3) { $WindowsHosts | Table -Name 'Windows Hosts' -Table } 
+                                if ($InfoLevel.Cluster -lt 3) { $WindowsHosts | Table -Name 'Windows Hosts' } 
                                 else { $WindowsHosts | Table -Name 'Windows Hosts' -ColumnWidths 30,70 -List }
                             }
                             Section -Style Heading4 'Linux Hosts' { 
                                 Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
-                                if ($InfoLevel.Cluster -lt 3) { $LinuxHosts | Table -Name 'Linux Hosts' -Table } 
+                                if ($InfoLevel.Cluster -lt 3) { $LinuxHosts | Table -Name 'Linux Hosts' } 
                                 else { $LinuxHosts | Table -Name 'Linux Hosts' -ColumnWidths 30,70 -List }
                             }
                             
@@ -390,10 +477,16 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Paragraph "The following contains information  around the replication configuration on the cluster"
                             # Gather Information
                             # Global Configs for all InfoLevels
-                            #-=MWP=- also ensure all column names are in plain english - both below and above. - also, check for 0 results
-                            $ReplicationSources = Get-RubrikReplicationSource | Select sourceClusterName, sourceClusterAddress, sourceClusterUuid, replicationSetup
-                            $ReplicationTargets = Get-RubrikReplicationTarget | Select targetClusterName, targetClusterAddress, targetClusterUuid, replicationSetup
-                            
+                            #-=MWP=- create checks for 0 results on all items
+                            $ReplicationSources = Get-RubrikReplicationSource | Select @{N="Cluster Name";E={$_.sourceClusterName}},
+                                @{N="Cluster Address";E={$_.sourceClusterAddress}},
+                                @{N="Cluster UUID";E={$_.sourceClusterUuid}},
+                                @{N="Replication Network Setup";E={$_.replicationSetup}}
+                            $ReplicationTargets = Get-RubrikReplicationTarget | Select @{N="Cluster Name";E={$_.targetClusterName}},
+                            @{N="Cluster Address";E={$_.targetClusterAddress}},
+                            @{N="Cluster UUID";E={$_.targetClusterUuid}},
+                            @{N="Replication Network Setup";E={$_.replicationSetup}}
+
                             Section -Style Heading4 'Replication Sources' { 
                                 Paragraph "The following table outlines locations which have been configured as a replication source to this cluster"
                                 $ReplicationSources | Table -Name 'Replication Sources'
@@ -534,9 +627,309 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         } # End Heading 3 Archive Targets
                     } #End Heading 2
                 }# end of Infolevel 1
-  
 
+                Section -Style Heading2 "SLA Domains" {
+                    Paragraph ("The following section provides information on the configured SLA Domains")
+                    BlankLine
+                    if ($InfoLevel.SLADomains -lt 3) {
+                        $SLADomains = Get-RubrikSLA -PrimaryClusterId 'local' | Select @{N="Name";E={$_.name}},
+                        @{N="Base Frequency";E={if ($_.frequencies.hourly) {'{0} Hours' -f $_.frequencies.hourly.frequency} elseif ($_.frequencies.daily) {'{0} Days' -f $_.frequencies.daily.frequency}}},
+                        @{N="Object Count";E={$_.numProtectedObjects}},
+                        @{N="Archival Location";E={(Get-RubrikArchive -id $_.archivalSpecs.locationId).Name}},
+                        @{N="Replication Location";E={(Get-RubrikReplicationTarget -id $_.replicationSpecs.locationId).targetClusterName}}                       
+                    
+                        $SLADomains | Table -Name 'SLA Domain Summary' 
+                    }
+                    elseif ($InfoLevel.SLADomains -le 5) {
+                        #-=MWP=- add checks for zero results
+                        $SLADomains = Get-RubrikSLA -PrimaryClusterId 'local' 
+                        foreach ($SLADomain in $SLADomains) {
+                            Section -Style Heading3 $SLADomain.name {
+                                Paragraph ("The following outlines the configuration options for $($sladomain.name)")
+
+                                Section -Style Heading4 "General Settings" {
+                                    $BaseFrequency = if ($SLADomain.frequencies.hourly) {
+                                        '{0} Hours' -f $SLADomain.frequencies.hourly.frequency
+                                    } 
+                                    elseif ($SLADomain.frequencies.daily) {
+                                        '{0} Days' -f $SLADomain.frequencies.daily.frequency
+                                    }
+                                    if ($null -ne $SLADomain.archivalSpecs.locationId) {
+                                        $ArchiveLocationName = (Get-RubrikArchive -id $SLADomain.archivalSpecs.locationId).Name
+                                    }
+                                    else { $ArchiveLocationName = ""}
+                                    if ($null -ne $SLADomain.replicationSpecs.locationId) {
+                                        $ReplicationLocationName = (Get-RubrikReplicationTarget -id $SLADomain.replicationSpecs.locationId).targetClusterName
+                                    }
+                                    else { $ReplicationLocationName = ""}
+                                    $SLAGeneral =[ordered] @{
+                                        'ID'                    = $SLADomain.id
+                                        'Name'                  = $SLADomain.name
+                                        'Object Count'          = $SLADomain.numProtectedObjects
+                                        'Base Frequency'        = $BaseFrequency
+                                        'Archival Location'     = $ArchiveLocationName
+                                        'Replication Target'    = $ReplicationLocationName
+                                    } 
+                                    [PSCustomObject]$SLAGeneral | Table -Name "General Settings" -ColumnWidths 30,70 -List
+                                }
+                                Section -Style Heading4 "SLA Frequency Settings" {
+                                    if ($null -ne $SLADomain.advancedUiConfig) {
+                                        $SLAFrequency = @()
+
+                                        if ($null -ne $SLADomain.frequencies.hourly.retention) {
+                                            $HourlyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Hourly'}).retentionType
+                                            switch ($HourlyRetentionType) {
+                                                "Weekly" { $HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Week(s)" }
+                                                "Daily" { $HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Day(s)" }
+                                            }
+    
+                                            $hourly = [ordered]@{
+                                                'Take backups every' = "$($SLADomain.frequencies.hourly.frequency) hour(s)"
+                                                'Retain backups for' = $HourlyRetention
+                                            }
+                                            $SLAFrequency += [pscustomobject]$hourly
+                                        }
+                                        if ($null -ne $SLADomain.frequencies.daily.retention) {
+                                            $DailyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Daily'}).retentionType
+                                            switch ($DailyRetentionType) {
+                                                "Weekly" { $DailyRetention = "$($SLADomain.frequencies.daily.retention) Week(s)" }
+                                                "Daily" { $DailyRetention = "$($SLADomain.frequencies.daily.retention) Day(s)" }
+                                            }
+                                            $daily = [ordered]@{
+                                                'Take backups every' = "$($SLADomain.frequencies.daily.frequency) day(s)"
+                                                'Retain backups for' = $DailyRetention
+                                            }
+                                            $SLAFrequency += [pscustomobject]$daily
+                                        }
+                                        if ($null -ne $SLADomain.frequencies.weekly.retention) {
+                                            #Weekly Retention is always weeks
+                                            $WeeklyRetention = "$($SLADomain.frequencies.weekly.retention) Week(s)"
+                                            $weekly = [ordered]@{
+                                                'Take backups every' = "$($SLADomain.frequencies.weekly.frequency) Week(s) on $($SLADomain.frequencies.weekly.dayOfWeek)"
+                                                'Retain backups for' = $WeeklyRetention
+                                            }
+                                            $SLAFrequency += [pscustomobject]$weekly
+                                        }
+                                        if ($null -ne $SLADomain.frequencies.monthly.retention) {
+                                            $MonthlyBackupTime = $SLADomain.frequencies.monthly.dayofMonth
+                                            switch ($MonthlyBackupTime) {
+                                                "LastDay" { $MonthStart = "the last day of the month."}
+                                                "Fifteenth" { $MonthStart = "the 15th day of the month."}
+                                                "FirstDay"  { $MonthStart = "the first day of the month."}
+                                            }
+                                            $MonthlyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Monthly'}).retentionType
+                                            switch ($MonthlyRetentionType) {
+                                                "Monthly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Month(s)" }
+                                                "Quarterly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Quarter(s)" }
+                                                "Yearly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Year(s)" }
+                                            }
+                                            $monthly = [ordered]@{
+                                                'Take backups every' = "$($SLADomain.frequencies.monthly.frequency) Month(s) on $MonthStart"
+                                                'Retain backups for' = $MonthlyRetention
+                                            }
+                                            $SLAFrequency += [pscustomobject]$monthly
+                                        }
+                                        if ($null -ne $SLADomain.frequencies.quarterly.retention) {
+                                            $QuarterlyBackupTime = $SLADomain.frequencies.quarterly.dayofQuarter
+                                            switch ($QuarterlyBackupTime) {
+                                                "LastDay" { $QuarterStart = "the last day of the quarter"}
+                                                "FirstDay"  { $QuarterStart = "the first day of the quarter"}
+                                            }
+                                            $QuarterMonthStart = $SLADomain.frequencies.quarterly.firstQuarterStartMonth
+
+                                            $QuarterRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Quarterly'}).retentionType
+                                            switch ($QuarterRetentionType) {
+                                                "Quarterly" { $QuarterRetention = "$($SLADomain.frequencies.quarterly.retention) Quarter(s)" }
+                                                "Yearly" { $QuarterRetention = "$($SLADomain.frequencies.quarterly.retention) Year(s)" }
+                                            }
+                                            $quarterly = [ordered]@{
+                                                'Take backups every' = "$($SLADomain.frequencies.quarterly.frequency) Quarter(s) on $QuarterStart beggining in $QuarterMonthStart"
+                                                'Retain backups for' = $QuarterRetention
+                                            }
+                                            $SLAFrequency += [pscustomobject]$quarterly
+                                        }
+                                        if ($null -ne $SLADomain.frequencies.yearly.retention) {
+                                            $YearlyBackupTime = $SLADomain.frequencies.yearly.dayOfYear
+                                            switch ($YearlyBackupTime) {
+                                                "LastDay" { $YearStart = "the last day of the year"}
+                                                "FirstDay"  { $YearStart = "the first day of the year"}
+                                            }
+                                            $YearMonthStart = $SLADomain.frequencies.yearly.yearStartMonth
+
+                                            #Yearly time unit is always years
+                                            $YearlyRetention = "$($SLADomain.frequencies.yearly.retention) Year(s)"
+                                            $yearly = [ordered]@{
+                                                'Take backups every' = "$($SLADomain.frequencies.yearly.frequency) Year(s) on $YearStart beggining in $YearMonthStart"
+                                                'Retain backups for' = $YearlyRetention
+                                            }
+                                            $SLAFrequency += [pscustomobject]$yearly
+                                        }
+                                    }
+                                    else {
+                                        $SLAFrequency = @()
+                                        
+                                        if ($null -ne $SLADomain.frequencies.hourly.retention) {
+                                            if ($SLADomain.frequencies.hourly.retention -gt 23) {
+                                                $HourlyRetention = "$($SLADomain.frequencies.hourly.retention/24) Day(s)"
+                                            }
+                                            else {$HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Hour(s)" }
+                                            $hourly = @{
+                                                'Take backups every' = "$($SLADomain.frequencies.hourly.frequency) Hour(s)"
+                                                'Retain backups for' = $HourlyRetention
+                                            }
+                                            $SLAFrequency += [pscustomobject]$hourly
+                                        }
+                                        if ($null -ne $SLADomain.frequencies.daily.retention) {
+                                            $daily = @{
+                                                'Take backups every' = "$($SLADomain.frequencies.daily.frequency) Day(s)"
+                                                'Retain backups for' = "$($SLADomain.frequencies.daily.retention)  Day(s)"
+                                            }
+                                            $SLAFrequency += [pscustomobject]$daily
+                                        }
+                                        if ($null -ne $SLADomain.frequencies.monthly.retention) {
+                                            $monthly = @{
+                                                'Take backups every' = "$($SLADomain.frequencies.monthly.frequency) Month(s)"
+                                                'Retain backups for' = "$($SLADomain.frequencies.monthly.retention)  Month(s)"
+                                            }
+                                            $SLAFrequency += [pscustomobject]$monthly
+                                        }
+                                        if ($null -ne $SLADomain.frequencies.yearly.retention) {
+                                            $yearly = @{
+                                                'Take backups every' = "$($SLADomain.frequencies.yearly.frequency) Year(s)"
+                                                'Retain backups for' = "$($SLADomain.frequencies.yearly.retention)  Year(s)"
+                                            }
+                                            $SLAFrequency += [pscustomobject]$yearly
+                                        }
+                                    }
+                                    $SLAFrequency | Table -Name "SLA Frequencies" -Columns 'Take backups every','Retain backups for'
+                                }
+                                Section -Style Heading4 "SLA Archival Settings" {
+                                    if ($null -ne $SLADomain.archivalSpecs.locationId) {
+                                        $ArchiveInformation = Get-RubrikArchive -id $SLADomain.archivalSpecs.locationId -DetailedObject
+
+                                        $Archive = [ordered] @{
+                                            'Name'  = $ArchiveInformation.definition.name
+                                            'Archive Location Type' = $ArchiveInformation.locationType
+                                            'Archive data after' = "$($SLADomain.archivalSpecs.archivalThreshold/60/60/24) Day(s)"
+                                        }
+
+                                        [pscustomobject]$Archive | Table -Name "Archival Information" -List -ColumnWidths 30,70
+                                    }
+                                    else {
+                                        Paragraph ("SLA Domain is not configured for archival")
+                                    }
+                                }
+                                Section -Style Heading4 "SLA Replication Settings" {
+                                    if ($null -ne $SLADomain.replicationSpecs.locationId) {
+                                        $ReplicationInformation = Get-RubrikReplicationTarget -id $SLADomain.replicationSpecs.locationId 
+
+                                        $Replication = [ordered] @{
+                                            'Name'  = $ReplicationInformation.targetClusterName
+                                            'Target Replication Cluster Address' = $ReplicationInformation.targetClusterAddress
+                                            'Keep Replica on target cluster for' = "$($SLADomain.replicationSpecs.retentionLimit/60/60/24) Day(s)"
+                                        }
+
+                                        [pscustomobject]$Replication | Table -Name "Replication Information" -List -ColumnWidths 30,70
+                                    }
+                                    else {
+                                        Paragraph ("SLA Domain is not configured for replication")
+                                    }
+                                }
+                                
+                                Section -Style Heading4 "SLA Protected Object Count" {
+                                    if ($SLADomain.numProtectedObjects -gt 0) {
+                                        #-=MWP=- may be able to use this strategy below to display columns above, rather than all the N= E=
+                                        $SLADomain | Table -Name "Protected Object Summary" -Columns numVms,numHypervVms,numNutanixVms,numVcdVapps,numEc2Instances,numDbs,numOracleDbs,numFilesets,numWindowsVolumeGroups,numManagedVolumes,numShares,numStorageArrayVolumeGroups -Headers 'VMware VMs','HyperV VMs','Nutanix VMs','VCD vApps','EC2 Instances','MSSQL DBs','Oracle DBs','Filesets','Windows Volume Groups','Managed Volumes','NAS Shares','Storage Array Volumes' -List -ColumnWidths 30,70
+                                    }
+                                    else {
+                                        Paragraph ("There are no objects assigned to this SLA Domain")
+                                    }
+                                     
+                                }
+                                
+                                if ($InfoLevel.SLADomains -eq 5){
+                                    Section -Style Heading4 "SLA Protected Objects Details" {
+                                        Paragraph ("The following displays details about the objects protected by this SLA Domain")
+                                        if ($SLADomain.numProtectedObjects -gt 0) {
+                                            if ($SLADomain.numVms -gt 0) {
+                                                Section -Style Heading5 "VMware VMs" {
+                                                    $Objects = Get-RubrikVM -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                    $Objects | Table -Name "Protected VMware VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
+                                                }
+                                            }
+                                            if ($SLADomain.numHyperVvms -gt 0) {
+                                                Section -Style Heading5 "HyperV VMs" {
+                                                    $Objects = Get-RubrikHyperVVM -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                    $Objects | Table -Name "Protected HyperV VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
+                                                }
+                                            }
+                                            if ($SLADomain.numNutanixvms -gt 0) {
+                                                Section -Style Heading5 "Nutanix VMs" {
+                                                    $Objects = Get-RubrikNutanixVM -SLAID $SLADomain.Id | Sort-Object -Property Name 
+                                                    $Objects | Table -Name "Protected Nutanix VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
+                                                }
+                                            }
+                                            if ($SLADomain.numVcdVapps -gt 0) {
+                                                Section -Style Heading5 "VCD vApps" {
+                                                    $Objects = Get-RubrikvApp -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                    $Objects | Table -Name "Protected VCD vApps" -Columns Name,slaAssignment -Headers 'vApp Name','Assignment Type' -ColumnWidths 50,50
+                                                }
+                                            }
+                                            #-=MWP=- Reserve for EC2 Instances - need to create cmdlet -=MWP=-
+                                            if ($SLADomain.numDbs -gt 0) {
+                                                Section -Style Heading5 "MSSQL Databases" {
+                                                    $Objects = Get-RubrikDatabase -SLAID $SLADomain.Id  | Select -Property *,@{N="ParentHost";E={$_.rootProperties.rootName}} |Sort-Object -Property Name
+                                                    $Objects | Table -Name "Protected MSSQL Databases" -Columns Name,slaAssignment,ParentHost -Headers 'Database Name','Assignment Type','SQL Server/Availability Group' -ColumnWidths 33,33,34
+                                                }
+                                            }
+                                            if ($SLADomain.numOracleDbs -gt 0) {
+                                                Section -Style Heading5 "Oracle Databases" {
+                                                    $Objects = Get-RubrikOracleDB -SLAID $SLADomain.Id | Select -Property *,@{N="ParentHost";E={$_.instances.hostName}} |  Sort-Object -Property Name
+                                                    $Objects | Table -Name "Protected Oracle Databases" -Columns Name,slaAssignment,ParentHost -Headers 'Database Name','Assignment Type','Oracle Server' -ColumnWidths 33,33,34
+                                                }
+                                            }
+                                            #-=MWP=- add more information to this - fix all column widths to be the same
+                                            if ($SLADomain.numFilesets -gt 0) {
+                                                Section -Style Heading5 "Filesets" {
+                                                    $Objects = Get-RubrikFileset -SLAID $SLADomain.Id | Select -Property *,@{N="slaAssignment";E={"Direct"}} | Sort-Object -Property Name
+                                                    $Objects | Table -Name "Protected Filesets" -Columns Name,slaAssignment,hostname -Headers 'Fileset Name','Assignment Type','Attached to host' -ColumnWidths 33,33,34
+                                                }
+                                            }
+                                            if ($SLADomain.numWindowsVolumeGroups -gt 0) {
+                                                Section -Style Heading5 "Windows Volume Groups" {
+                                                    $Objects = Get-RubrikVolumeGroup -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                    $Objects | Table -Name "Protected Volume Groups" -Columns Name,slaAssignment,hostname -Headers 'Volume Group Name','Assignment Type','Attached to Host' -ColumnWidths 33,33,34
+                                                }
+                                            }
+                                            if ($SLADomain.numManagedVolumes -gt 0) {
+                                                Section -Style Heading5 "Managed Volumes" {
+                                                    $Objects = Get-RubrikManagedVolume -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                    $Objects | Table -Name "Protected Managed Volumes" -Columns Name,slaAssignment -Headers 'Managed Volume Name','Assignment Type' -ColumnWidths 50,50
+                                                }
+                                            }
+                                            #-=MWP=- reserve for NAS Shares /internal/host_fileset/share
+                                            # reserve for storage volume group protection
+                                        }
+                                        else {
+                                            Paragraph ("There are no objects assigned to this SLA Domain")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } # End of ForEach SLA Domain
+                } # End of Style Heading2 SLA Domains
+                Section -Style Heading2 "Protected Objects" {
+                    Paragraph("The following shows details around all protected objects configured within the Rubrik cluster")
+                } # end of Style Heading2 Protected Objects
+                Section -Style Heading2 "Snapshot Retention" {
+                    Paragraph ("The following displays all relic, expired, and unmanaged objects within the Rubrik cluster")
+                } # end of Style Heading2 Snapshot Retention
+                Section -Style Heading2 "Custom Reports" {
+                    Paragraph ("The following outlines any custom reports created within Rubrik.")
+                } # end of Style Heading2 Custom Reports
             }
+            
         } # End of if $RubrikCluster
     } # End of foreach $cluster
 
