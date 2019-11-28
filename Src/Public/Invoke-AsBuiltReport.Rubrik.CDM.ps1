@@ -627,303 +627,450 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         } # End Heading 3 Archive Targets
                     } #End Heading 2
                 }# end of Infolevel 1
+                if ($InfoLevel.SLADomains -ge 1) {
+                    Section -Style Heading2 "SLA Domains" {
+                        Paragraph ("The following section provides information on the configured SLA Domains")
+                        BlankLine
+                        if ($InfoLevel.SLADomains -lt 3) {
+                            $SLADomains = Get-RubrikSLA -PrimaryClusterId 'local' | Select @{N="Name";E={$_.name}},
+                            @{N="Base Frequency";E={if ($_.frequencies.hourly) {'{0} Hours' -f $_.frequencies.hourly.frequency} elseif ($_.frequencies.daily) {'{0} Days' -f $_.frequencies.daily.frequency}}},
+                            @{N="Object Count";E={$_.numProtectedObjects}},
+                            @{N="Archival Location";E={(Get-RubrikArchive -id $_.archivalSpecs.locationId).Name}},
+                            @{N="Replication Location";E={(Get-RubrikReplicationTarget -id $_.replicationSpecs.locationId).targetClusterName}}                       
+                        
+                            $SLADomains | Table -Name 'SLA Domain Summary' 
+                        }
+                        elseif ($InfoLevel.SLADomains -le 5) {
+                            #-=MWP=- add checks for zero results
+                            $SLADomains = Get-RubrikSLA -PrimaryClusterId 'local' 
+                            foreach ($SLADomain in $SLADomains) {
+                                Section -Style Heading3 $SLADomain.name {
+                                    Paragraph ("The following outlines the configuration options for $($sladomain.name)")
 
-                Section -Style Heading2 "SLA Domains" {
-                    Paragraph ("The following section provides information on the configured SLA Domains")
-                    BlankLine
-                    if ($InfoLevel.SLADomains -lt 3) {
-                        $SLADomains = Get-RubrikSLA -PrimaryClusterId 'local' | Select @{N="Name";E={$_.name}},
-                        @{N="Base Frequency";E={if ($_.frequencies.hourly) {'{0} Hours' -f $_.frequencies.hourly.frequency} elseif ($_.frequencies.daily) {'{0} Days' -f $_.frequencies.daily.frequency}}},
-                        @{N="Object Count";E={$_.numProtectedObjects}},
-                        @{N="Archival Location";E={(Get-RubrikArchive -id $_.archivalSpecs.locationId).Name}},
-                        @{N="Replication Location";E={(Get-RubrikReplicationTarget -id $_.replicationSpecs.locationId).targetClusterName}}                       
-                    
-                        $SLADomains | Table -Name 'SLA Domain Summary' 
-                    }
-                    elseif ($InfoLevel.SLADomains -le 5) {
-                        #-=MWP=- add checks for zero results
-                        $SLADomains = Get-RubrikSLA -PrimaryClusterId 'local' 
-                        foreach ($SLADomain in $SLADomains) {
-                            Section -Style Heading3 $SLADomain.name {
-                                Paragraph ("The following outlines the configuration options for $($sladomain.name)")
+                                    Section -Style Heading4 "General Settings" {
+                                        $BaseFrequency = if ($SLADomain.frequencies.hourly) {
+                                            '{0} Hours' -f $SLADomain.frequencies.hourly.frequency
+                                        } 
+                                        elseif ($SLADomain.frequencies.daily) {
+                                            '{0} Days' -f $SLADomain.frequencies.daily.frequency
+                                        }
+                                        if ($null -ne $SLADomain.archivalSpecs.locationId) {
+                                            $ArchiveLocationName = (Get-RubrikArchive -id $SLADomain.archivalSpecs.locationId).Name
+                                        }
+                                        else { $ArchiveLocationName = ""}
+                                        if ($null -ne $SLADomain.replicationSpecs.locationId) {
+                                            $ReplicationLocationName = (Get-RubrikReplicationTarget -id $SLADomain.replicationSpecs.locationId).targetClusterName
+                                        }
+                                        else { $ReplicationLocationName = ""}
+                                        $SLAGeneral =[ordered] @{
+                                            'ID'                    = $SLADomain.id
+                                            'Name'                  = $SLADomain.name
+                                            'Object Count'          = $SLADomain.numProtectedObjects
+                                            'Base Frequency'        = $BaseFrequency
+                                            'Archival Location'     = $ArchiveLocationName
+                                            'Replication Target'    = $ReplicationLocationName
+                                        } 
+                                        [PSCustomObject]$SLAGeneral | Table -Name "General Settings" -ColumnWidths 30,70 -List
+                                    }
+                                    Section -Style Heading4 "SLA Frequency Settings" {
+                                        if ($null -ne $SLADomain.advancedUiConfig) {
+                                            $SLAFrequency = @()
 
-                                Section -Style Heading4 "General Settings" {
-                                    $BaseFrequency = if ($SLADomain.frequencies.hourly) {
-                                        '{0} Hours' -f $SLADomain.frequencies.hourly.frequency
-                                    } 
-                                    elseif ($SLADomain.frequencies.daily) {
-                                        '{0} Days' -f $SLADomain.frequencies.daily.frequency
-                                    }
-                                    if ($null -ne $SLADomain.archivalSpecs.locationId) {
-                                        $ArchiveLocationName = (Get-RubrikArchive -id $SLADomain.archivalSpecs.locationId).Name
-                                    }
-                                    else { $ArchiveLocationName = ""}
-                                    if ($null -ne $SLADomain.replicationSpecs.locationId) {
-                                        $ReplicationLocationName = (Get-RubrikReplicationTarget -id $SLADomain.replicationSpecs.locationId).targetClusterName
-                                    }
-                                    else { $ReplicationLocationName = ""}
-                                    $SLAGeneral =[ordered] @{
-                                        'ID'                    = $SLADomain.id
-                                        'Name'                  = $SLADomain.name
-                                        'Object Count'          = $SLADomain.numProtectedObjects
-                                        'Base Frequency'        = $BaseFrequency
-                                        'Archival Location'     = $ArchiveLocationName
-                                        'Replication Target'    = $ReplicationLocationName
-                                    } 
-                                    [PSCustomObject]$SLAGeneral | Table -Name "General Settings" -ColumnWidths 30,70 -List
-                                }
-                                Section -Style Heading4 "SLA Frequency Settings" {
-                                    if ($null -ne $SLADomain.advancedUiConfig) {
-                                        $SLAFrequency = @()
+                                            if ($null -ne $SLADomain.frequencies.hourly.retention) {
+                                                $HourlyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Hourly'}).retentionType
+                                                switch ($HourlyRetentionType) {
+                                                    "Weekly" { $HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Week(s)" }
+                                                    "Daily" { $HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Day(s)" }
+                                                }
+        
+                                                $hourly = [ordered]@{
+                                                    'Take backups every' = "$($SLADomain.frequencies.hourly.frequency) hour(s)"
+                                                    'Retain backups for' = $HourlyRetention
+                                                }
+                                                $SLAFrequency += [pscustomobject]$hourly
+                                            }
+                                            if ($null -ne $SLADomain.frequencies.daily.retention) {
+                                                $DailyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Daily'}).retentionType
+                                                switch ($DailyRetentionType) {
+                                                    "Weekly" { $DailyRetention = "$($SLADomain.frequencies.daily.retention) Week(s)" }
+                                                    "Daily" { $DailyRetention = "$($SLADomain.frequencies.daily.retention) Day(s)" }
+                                                }
+                                                $daily = [ordered]@{
+                                                    'Take backups every' = "$($SLADomain.frequencies.daily.frequency) day(s)"
+                                                    'Retain backups for' = $DailyRetention
+                                                }
+                                                $SLAFrequency += [pscustomobject]$daily
+                                            }
+                                            if ($null -ne $SLADomain.frequencies.weekly.retention) {
+                                                #Weekly Retention is always weeks
+                                                $WeeklyRetention = "$($SLADomain.frequencies.weekly.retention) Week(s)"
+                                                $weekly = [ordered]@{
+                                                    'Take backups every' = "$($SLADomain.frequencies.weekly.frequency) Week(s) on $($SLADomain.frequencies.weekly.dayOfWeek)"
+                                                    'Retain backups for' = $WeeklyRetention
+                                                }
+                                                $SLAFrequency += [pscustomobject]$weekly
+                                            }
+                                            if ($null -ne $SLADomain.frequencies.monthly.retention) {
+                                                $MonthlyBackupTime = $SLADomain.frequencies.monthly.dayofMonth
+                                                switch ($MonthlyBackupTime) {
+                                                    "LastDay" { $MonthStart = "the last day of the month."}
+                                                    "Fifteenth" { $MonthStart = "the 15th day of the month."}
+                                                    "FirstDay"  { $MonthStart = "the first day of the month."}
+                                                }
+                                                $MonthlyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Monthly'}).retentionType
+                                                switch ($MonthlyRetentionType) {
+                                                    "Monthly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Month(s)" }
+                                                    "Quarterly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Quarter(s)" }
+                                                    "Yearly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Year(s)" }
+                                                }
+                                                $monthly = [ordered]@{
+                                                    'Take backups every' = "$($SLADomain.frequencies.monthly.frequency) Month(s) on $MonthStart"
+                                                    'Retain backups for' = $MonthlyRetention
+                                                }
+                                                $SLAFrequency += [pscustomobject]$monthly
+                                            }
+                                            if ($null -ne $SLADomain.frequencies.quarterly.retention) {
+                                                $QuarterlyBackupTime = $SLADomain.frequencies.quarterly.dayofQuarter
+                                                switch ($QuarterlyBackupTime) {
+                                                    "LastDay" { $QuarterStart = "the last day of the quarter"}
+                                                    "FirstDay"  { $QuarterStart = "the first day of the quarter"}
+                                                }
+                                                $QuarterMonthStart = $SLADomain.frequencies.quarterly.firstQuarterStartMonth
 
-                                        if ($null -ne $SLADomain.frequencies.hourly.retention) {
-                                            $HourlyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Hourly'}).retentionType
-                                            switch ($HourlyRetentionType) {
-                                                "Weekly" { $HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Week(s)" }
-                                                "Daily" { $HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Day(s)" }
+                                                $QuarterRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Quarterly'}).retentionType
+                                                switch ($QuarterRetentionType) {
+                                                    "Quarterly" { $QuarterRetention = "$($SLADomain.frequencies.quarterly.retention) Quarter(s)" }
+                                                    "Yearly" { $QuarterRetention = "$($SLADomain.frequencies.quarterly.retention) Year(s)" }
+                                                }
+                                                $quarterly = [ordered]@{
+                                                    'Take backups every' = "$($SLADomain.frequencies.quarterly.frequency) Quarter(s) on $QuarterStart beggining in $QuarterMonthStart"
+                                                    'Retain backups for' = $QuarterRetention
+                                                }
+                                                $SLAFrequency += [pscustomobject]$quarterly
                                             }
-    
-                                            $hourly = [ordered]@{
-                                                'Take backups every' = "$($SLADomain.frequencies.hourly.frequency) hour(s)"
-                                                'Retain backups for' = $HourlyRetention
-                                            }
-                                            $SLAFrequency += [pscustomobject]$hourly
-                                        }
-                                        if ($null -ne $SLADomain.frequencies.daily.retention) {
-                                            $DailyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Daily'}).retentionType
-                                            switch ($DailyRetentionType) {
-                                                "Weekly" { $DailyRetention = "$($SLADomain.frequencies.daily.retention) Week(s)" }
-                                                "Daily" { $DailyRetention = "$($SLADomain.frequencies.daily.retention) Day(s)" }
-                                            }
-                                            $daily = [ordered]@{
-                                                'Take backups every' = "$($SLADomain.frequencies.daily.frequency) day(s)"
-                                                'Retain backups for' = $DailyRetention
-                                            }
-                                            $SLAFrequency += [pscustomobject]$daily
-                                        }
-                                        if ($null -ne $SLADomain.frequencies.weekly.retention) {
-                                            #Weekly Retention is always weeks
-                                            $WeeklyRetention = "$($SLADomain.frequencies.weekly.retention) Week(s)"
-                                            $weekly = [ordered]@{
-                                                'Take backups every' = "$($SLADomain.frequencies.weekly.frequency) Week(s) on $($SLADomain.frequencies.weekly.dayOfWeek)"
-                                                'Retain backups for' = $WeeklyRetention
-                                            }
-                                            $SLAFrequency += [pscustomobject]$weekly
-                                        }
-                                        if ($null -ne $SLADomain.frequencies.monthly.retention) {
-                                            $MonthlyBackupTime = $SLADomain.frequencies.monthly.dayofMonth
-                                            switch ($MonthlyBackupTime) {
-                                                "LastDay" { $MonthStart = "the last day of the month."}
-                                                "Fifteenth" { $MonthStart = "the 15th day of the month."}
-                                                "FirstDay"  { $MonthStart = "the first day of the month."}
-                                            }
-                                            $MonthlyRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Monthly'}).retentionType
-                                            switch ($MonthlyRetentionType) {
-                                                "Monthly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Month(s)" }
-                                                "Quarterly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Quarter(s)" }
-                                                "Yearly" { $MonthlyRetention = "$($SLADomain.frequencies.monthly.retention) Year(s)" }
-                                            }
-                                            $monthly = [ordered]@{
-                                                'Take backups every' = "$($SLADomain.frequencies.monthly.frequency) Month(s) on $MonthStart"
-                                                'Retain backups for' = $MonthlyRetention
-                                            }
-                                            $SLAFrequency += [pscustomobject]$monthly
-                                        }
-                                        if ($null -ne $SLADomain.frequencies.quarterly.retention) {
-                                            $QuarterlyBackupTime = $SLADomain.frequencies.quarterly.dayofQuarter
-                                            switch ($QuarterlyBackupTime) {
-                                                "LastDay" { $QuarterStart = "the last day of the quarter"}
-                                                "FirstDay"  { $QuarterStart = "the first day of the quarter"}
-                                            }
-                                            $QuarterMonthStart = $SLADomain.frequencies.quarterly.firstQuarterStartMonth
+                                            if ($null -ne $SLADomain.frequencies.yearly.retention) {
+                                                $YearlyBackupTime = $SLADomain.frequencies.yearly.dayOfYear
+                                                switch ($YearlyBackupTime) {
+                                                    "LastDay" { $YearStart = "the last day of the year"}
+                                                    "FirstDay"  { $YearStart = "the first day of the year"}
+                                                }
+                                                $YearMonthStart = $SLADomain.frequencies.yearly.yearStartMonth
 
-                                            $QuarterRetentionType = ($SLADomain.advancedUiConfig | where {$_.timeUnit -eq 'Quarterly'}).retentionType
-                                            switch ($QuarterRetentionType) {
-                                                "Quarterly" { $QuarterRetention = "$($SLADomain.frequencies.quarterly.retention) Quarter(s)" }
-                                                "Yearly" { $QuarterRetention = "$($SLADomain.frequencies.quarterly.retention) Year(s)" }
+                                                #Yearly time unit is always years
+                                                $YearlyRetention = "$($SLADomain.frequencies.yearly.retention) Year(s)"
+                                                $yearly = [ordered]@{
+                                                    'Take backups every' = "$($SLADomain.frequencies.yearly.frequency) Year(s) on $YearStart beggining in $YearMonthStart"
+                                                    'Retain backups for' = $YearlyRetention
+                                                }
+                                                $SLAFrequency += [pscustomobject]$yearly
                                             }
-                                            $quarterly = [ordered]@{
-                                                'Take backups every' = "$($SLADomain.frequencies.quarterly.frequency) Quarter(s) on $QuarterStart beggining in $QuarterMonthStart"
-                                                'Retain backups for' = $QuarterRetention
-                                            }
-                                            $SLAFrequency += [pscustomobject]$quarterly
                                         }
-                                        if ($null -ne $SLADomain.frequencies.yearly.retention) {
-                                            $YearlyBackupTime = $SLADomain.frequencies.yearly.dayOfYear
-                                            switch ($YearlyBackupTime) {
-                                                "LastDay" { $YearStart = "the last day of the year"}
-                                                "FirstDay"  { $YearStart = "the first day of the year"}
+                                        else {
+                                            $SLAFrequency = @()
+                                            
+                                            if ($null -ne $SLADomain.frequencies.hourly.retention) {
+                                                if ($SLADomain.frequencies.hourly.retention -gt 23) {
+                                                    $HourlyRetention = "$($SLADomain.frequencies.hourly.retention/24) Day(s)"
+                                                }
+                                                else {$HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Hour(s)" }
+                                                $hourly = @{
+                                                    'Take backups every' = "$($SLADomain.frequencies.hourly.frequency) Hour(s)"
+                                                    'Retain backups for' = $HourlyRetention
+                                                }
+                                                $SLAFrequency += [pscustomobject]$hourly
                                             }
-                                            $YearMonthStart = $SLADomain.frequencies.yearly.yearStartMonth
+                                            if ($null -ne $SLADomain.frequencies.daily.retention) {
+                                                $daily = @{
+                                                    'Take backups every' = "$($SLADomain.frequencies.daily.frequency) Day(s)"
+                                                    'Retain backups for' = "$($SLADomain.frequencies.daily.retention)  Day(s)"
+                                                }
+                                                $SLAFrequency += [pscustomobject]$daily
+                                            }
+                                            if ($null -ne $SLADomain.frequencies.monthly.retention) {
+                                                $monthly = @{
+                                                    'Take backups every' = "$($SLADomain.frequencies.monthly.frequency) Month(s)"
+                                                    'Retain backups for' = "$($SLADomain.frequencies.monthly.retention)  Month(s)"
+                                                }
+                                                $SLAFrequency += [pscustomobject]$monthly
+                                            }
+                                            if ($null -ne $SLADomain.frequencies.yearly.retention) {
+                                                $yearly = @{
+                                                    'Take backups every' = "$($SLADomain.frequencies.yearly.frequency) Year(s)"
+                                                    'Retain backups for' = "$($SLADomain.frequencies.yearly.retention)  Year(s)"
+                                                }
+                                                $SLAFrequency += [pscustomobject]$yearly
+                                            }
+                                        }
+                                        $SLAFrequency | Table -Name "SLA Frequencies" -Columns 'Take backups every','Retain backups for'
+                                    }
+                                    Section -Style Heading4 "SLA Archival Settings" {
+                                        if ($null -ne $SLADomain.archivalSpecs.locationId) {
+                                            $ArchiveInformation = Get-RubrikArchive -id $SLADomain.archivalSpecs.locationId -DetailedObject
 
-                                            #Yearly time unit is always years
-                                            $YearlyRetention = "$($SLADomain.frequencies.yearly.retention) Year(s)"
-                                            $yearly = [ordered]@{
-                                                'Take backups every' = "$($SLADomain.frequencies.yearly.frequency) Year(s) on $YearStart beggining in $YearMonthStart"
-                                                'Retain backups for' = $YearlyRetention
+                                            $Archive = [ordered] @{
+                                                'Name'  = $ArchiveInformation.definition.name
+                                                'Archive Location Type' = $ArchiveInformation.locationType
+                                                'Archive data after' = "$($SLADomain.archivalSpecs.archivalThreshold/60/60/24) Day(s)"
                                             }
-                                            $SLAFrequency += [pscustomobject]$yearly
-                                        }
-                                    }
-                                    else {
-                                        $SLAFrequency = @()
-                                        
-                                        if ($null -ne $SLADomain.frequencies.hourly.retention) {
-                                            if ($SLADomain.frequencies.hourly.retention -gt 23) {
-                                                $HourlyRetention = "$($SLADomain.frequencies.hourly.retention/24) Day(s)"
-                                            }
-                                            else {$HourlyRetention = "$($SLADomain.frequencies.hourly.retention) Hour(s)" }
-                                            $hourly = @{
-                                                'Take backups every' = "$($SLADomain.frequencies.hourly.frequency) Hour(s)"
-                                                'Retain backups for' = $HourlyRetention
-                                            }
-                                            $SLAFrequency += [pscustomobject]$hourly
-                                        }
-                                        if ($null -ne $SLADomain.frequencies.daily.retention) {
-                                            $daily = @{
-                                                'Take backups every' = "$($SLADomain.frequencies.daily.frequency) Day(s)"
-                                                'Retain backups for' = "$($SLADomain.frequencies.daily.retention)  Day(s)"
-                                            }
-                                            $SLAFrequency += [pscustomobject]$daily
-                                        }
-                                        if ($null -ne $SLADomain.frequencies.monthly.retention) {
-                                            $monthly = @{
-                                                'Take backups every' = "$($SLADomain.frequencies.monthly.frequency) Month(s)"
-                                                'Retain backups for' = "$($SLADomain.frequencies.monthly.retention)  Month(s)"
-                                            }
-                                            $SLAFrequency += [pscustomobject]$monthly
-                                        }
-                                        if ($null -ne $SLADomain.frequencies.yearly.retention) {
-                                            $yearly = @{
-                                                'Take backups every' = "$($SLADomain.frequencies.yearly.frequency) Year(s)"
-                                                'Retain backups for' = "$($SLADomain.frequencies.yearly.retention)  Year(s)"
-                                            }
-                                            $SLAFrequency += [pscustomobject]$yearly
-                                        }
-                                    }
-                                    $SLAFrequency | Table -Name "SLA Frequencies" -Columns 'Take backups every','Retain backups for'
-                                }
-                                Section -Style Heading4 "SLA Archival Settings" {
-                                    if ($null -ne $SLADomain.archivalSpecs.locationId) {
-                                        $ArchiveInformation = Get-RubrikArchive -id $SLADomain.archivalSpecs.locationId -DetailedObject
 
-                                        $Archive = [ordered] @{
-                                            'Name'  = $ArchiveInformation.definition.name
-                                            'Archive Location Type' = $ArchiveInformation.locationType
-                                            'Archive data after' = "$($SLADomain.archivalSpecs.archivalThreshold/60/60/24) Day(s)"
+                                            [pscustomobject]$Archive | Table -Name "Archival Information" -List -ColumnWidths 30,70
                                         }
-
-                                        [pscustomobject]$Archive | Table -Name "Archival Information" -List -ColumnWidths 30,70
-                                    }
-                                    else {
-                                        Paragraph ("SLA Domain is not configured for archival")
-                                    }
-                                }
-                                Section -Style Heading4 "SLA Replication Settings" {
-                                    if ($null -ne $SLADomain.replicationSpecs.locationId) {
-                                        $ReplicationInformation = Get-RubrikReplicationTarget -id $SLADomain.replicationSpecs.locationId 
-
-                                        $Replication = [ordered] @{
-                                            'Name'  = $ReplicationInformation.targetClusterName
-                                            'Target Replication Cluster Address' = $ReplicationInformation.targetClusterAddress
-                                            'Keep Replica on target cluster for' = "$($SLADomain.replicationSpecs.retentionLimit/60/60/24) Day(s)"
+                                        else {
+                                            Paragraph ("SLA Domain is not configured for archival")
                                         }
+                                    }
+                                    Section -Style Heading4 "SLA Replication Settings" {
+                                        if ($null -ne $SLADomain.replicationSpecs.locationId) {
+                                            $ReplicationInformation = Get-RubrikReplicationTarget -id $SLADomain.replicationSpecs.locationId 
 
-                                        [pscustomobject]$Replication | Table -Name "Replication Information" -List -ColumnWidths 30,70
+                                            $Replication = [ordered] @{
+                                                'Name'  = $ReplicationInformation.targetClusterName
+                                                'Target Replication Cluster Address' = $ReplicationInformation.targetClusterAddress
+                                                'Keep Replica on target cluster for' = "$($SLADomain.replicationSpecs.retentionLimit/60/60/24) Day(s)"
+                                            }
+
+                                            [pscustomobject]$Replication | Table -Name "Replication Information" -List -ColumnWidths 30,70
+                                        }
+                                        else {
+                                            Paragraph ("SLA Domain is not configured for replication")
+                                        }
                                     }
-                                    else {
-                                        Paragraph ("SLA Domain is not configured for replication")
-                                    }
-                                }
-                                
-                                Section -Style Heading4 "SLA Protected Object Count" {
-                                    if ($SLADomain.numProtectedObjects -gt 0) {
-                                        #-=MWP=- may be able to use this strategy below to display columns above, rather than all the N= E=
-                                        $SLADomain | Table -Name "Protected Object Summary" -Columns numVms,numHypervVms,numNutanixVms,numVcdVapps,numEc2Instances,numDbs,numOracleDbs,numFilesets,numWindowsVolumeGroups,numManagedVolumes,numShares,numStorageArrayVolumeGroups -Headers 'VMware VMs','HyperV VMs','Nutanix VMs','VCD vApps','EC2 Instances','MSSQL DBs','Oracle DBs','Filesets','Windows Volume Groups','Managed Volumes','NAS Shares','Storage Array Volumes' -List -ColumnWidths 30,70
-                                    }
-                                    else {
-                                        Paragraph ("There are no objects assigned to this SLA Domain")
-                                    }
-                                     
-                                }
-                                
-                                if ($InfoLevel.SLADomains -eq 5){
-                                    Section -Style Heading4 "SLA Protected Objects Details" {
-                                        Paragraph ("The following displays details about the objects protected by this SLA Domain")
+                                    
+                                    Section -Style Heading4 "SLA Protected Object Count" {
                                         if ($SLADomain.numProtectedObjects -gt 0) {
-                                            if ($SLADomain.numVms -gt 0) {
-                                                Section -Style Heading5 "VMware VMs" {
-                                                    $Objects = Get-RubrikVM -SLAID $SLADomain.Id | Sort-Object -Property Name
-                                                    $Objects | Table -Name "Protected VMware VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
-                                                }
-                                            }
-                                            if ($SLADomain.numHyperVvms -gt 0) {
-                                                Section -Style Heading5 "HyperV VMs" {
-                                                    $Objects = Get-RubrikHyperVVM -SLAID $SLADomain.Id | Sort-Object -Property Name
-                                                    $Objects | Table -Name "Protected HyperV VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
-                                                }
-                                            }
-                                            if ($SLADomain.numNutanixvms -gt 0) {
-                                                Section -Style Heading5 "Nutanix VMs" {
-                                                    $Objects = Get-RubrikNutanixVM -SLAID $SLADomain.Id | Sort-Object -Property Name 
-                                                    $Objects | Table -Name "Protected Nutanix VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
-                                                }
-                                            }
-                                            if ($SLADomain.numVcdVapps -gt 0) {
-                                                Section -Style Heading5 "VCD vApps" {
-                                                    $Objects = Get-RubrikvApp -SLAID $SLADomain.Id | Sort-Object -Property Name
-                                                    $Objects | Table -Name "Protected VCD vApps" -Columns Name,slaAssignment -Headers 'vApp Name','Assignment Type' -ColumnWidths 50,50
-                                                }
-                                            }
-                                            #-=MWP=- Reserve for EC2 Instances - need to create cmdlet -=MWP=-
-                                            if ($SLADomain.numDbs -gt 0) {
-                                                Section -Style Heading5 "MSSQL Databases" {
-                                                    $Objects = Get-RubrikDatabase -SLAID $SLADomain.Id  | Select -Property *,@{N="ParentHost";E={$_.rootProperties.rootName}} |Sort-Object -Property Name
-                                                    $Objects | Table -Name "Protected MSSQL Databases" -Columns Name,slaAssignment,ParentHost -Headers 'Database Name','Assignment Type','SQL Server/Availability Group' -ColumnWidths 33,33,34
-                                                }
-                                            }
-                                            if ($SLADomain.numOracleDbs -gt 0) {
-                                                Section -Style Heading5 "Oracle Databases" {
-                                                    $Objects = Get-RubrikOracleDB -SLAID $SLADomain.Id | Select -Property *,@{N="ParentHost";E={$_.instances.hostName}} |  Sort-Object -Property Name
-                                                    $Objects | Table -Name "Protected Oracle Databases" -Columns Name,slaAssignment,ParentHost -Headers 'Database Name','Assignment Type','Oracle Server' -ColumnWidths 33,33,34
-                                                }
-                                            }
-                                            #-=MWP=- add more information to this - fix all column widths to be the same
-                                            if ($SLADomain.numFilesets -gt 0) {
-                                                Section -Style Heading5 "Filesets" {
-                                                    $Objects = Get-RubrikFileset -SLAID $SLADomain.Id | Select -Property *,@{N="slaAssignment";E={"Direct"}} | Sort-Object -Property Name
-                                                    $Objects | Table -Name "Protected Filesets" -Columns Name,slaAssignment,hostname -Headers 'Fileset Name','Assignment Type','Attached to host' -ColumnWidths 33,33,34
-                                                }
-                                            }
-                                            if ($SLADomain.numWindowsVolumeGroups -gt 0) {
-                                                Section -Style Heading5 "Windows Volume Groups" {
-                                                    $Objects = Get-RubrikVolumeGroup -SLAID $SLADomain.Id | Sort-Object -Property Name
-                                                    $Objects | Table -Name "Protected Volume Groups" -Columns Name,slaAssignment,hostname -Headers 'Volume Group Name','Assignment Type','Attached to Host' -ColumnWidths 33,33,34
-                                                }
-                                            }
-                                            if ($SLADomain.numManagedVolumes -gt 0) {
-                                                Section -Style Heading5 "Managed Volumes" {
-                                                    $Objects = Get-RubrikManagedVolume -SLAID $SLADomain.Id | Sort-Object -Property Name
-                                                    $Objects | Table -Name "Protected Managed Volumes" -Columns Name,slaAssignment -Headers 'Managed Volume Name','Assignment Type' -ColumnWidths 50,50
-                                                }
-                                            }
-                                            #-=MWP=- reserve for NAS Shares /internal/host_fileset/share
-                                            # reserve for storage volume group protection
+                                            #-=MWP=- may be able to use this strategy below to display columns above, rather than all the N= E=
+                                            $SLADomain | Table -Name "Protected Object Summary" -Columns numVms,numHypervVms,numNutanixVms,numVcdVapps,numEc2Instances,numDbs,numOracleDbs,numFilesets,numWindowsVolumeGroups,numManagedVolumes,numShares,numStorageArrayVolumeGroups -Headers 'VMware VMs','HyperV VMs','Nutanix VMs','VCD vApps','EC2 Instances','MSSQL DBs','Oracle DBs','Filesets','Windows Volume Groups','Managed Volumes','NAS Shares','Storage Array Volumes' -List -ColumnWidths 30,70
                                         }
                                         else {
                                             Paragraph ("There are no objects assigned to this SLA Domain")
                                         }
+                                        
+                                    }
+                                    
+                                    if ($InfoLevel.SLADomains -eq 5){
+                                        Section -Style Heading4 "SLA Protected Objects Details" {
+                                            Paragraph ("The following displays details about the objects protected by this SLA Domain")
+                                            if ($SLADomain.numProtectedObjects -gt 0) {
+                                                if ($SLADomain.numVms -gt 0) {
+                                                    Section -Style Heading5 "VMware VMs" {
+                                                        $Objects = Get-RubrikVM -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                        $Objects | Table -Name "Protected VMware VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
+                                                    }
+                                                }
+                                                if ($SLADomain.numHyperVvms -gt 0) {
+                                                    Section -Style Heading5 "HyperV VMs" {
+                                                        $Objects = Get-RubrikHyperVVM -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                        $Objects | Table -Name "Protected HyperV VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
+                                                    }
+                                                }
+                                                if ($SLADomain.numNutanixvms -gt 0) {
+                                                    Section -Style Heading5 "Nutanix VMs" {
+                                                        $Objects = Get-RubrikNutanixVM -SLAID $SLADomain.Id | Sort-Object -Property Name 
+                                                        $Objects | Table -Name "Protected Nutanix VMs" -Columns Name,slaAssignment -Headers 'VM Name','Assignment Type' -ColumnWidths 50,50
+                                                    }
+                                                }
+                                                if ($SLADomain.numVcdVapps -gt 0) {
+                                                    Section -Style Heading5 "VCD vApps" {
+                                                        $Objects = Get-RubrikvApp -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                        $Objects | Table -Name "Protected VCD vApps" -Columns Name,slaAssignment -Headers 'vApp Name','Assignment Type' -ColumnWidths 50,50
+                                                    }
+                                                }
+                                                #-=MWP=- Reserve for EC2 Instances - need to create cmdlet -=MWP=-
+                                                if ($SLADomain.numDbs -gt 0) {
+                                                    Section -Style Heading5 "MSSQL Databases" {
+                                                        $Objects = Get-RubrikDatabase -SLAID $SLADomain.Id  | Select -Property *,@{N="ParentHost";E={$_.rootProperties.rootName}} |Sort-Object -Property Name
+                                                        $Objects | Table -Name "Protected MSSQL Databases" -Columns Name,slaAssignment,ParentHost -Headers 'Database Name','Assignment Type','SQL Server/Availability Group' -ColumnWidths 33,33,34
+                                                    }
+                                                }
+                                                if ($SLADomain.numOracleDbs -gt 0) {
+                                                    Section -Style Heading5 "Oracle Databases" {
+                                                        $Objects = Get-RubrikOracleDB -SLAID $SLADomain.Id | Select -Property *,@{N="ParentHost";E={$_.instances.hostName}} |  Sort-Object -Property Name
+                                                        $Objects | Table -Name "Protected Oracle Databases" -Columns Name,slaAssignment,ParentHost -Headers 'Database Name','Assignment Type','Oracle Server' -ColumnWidths 33,33,34
+                                                    }
+                                                }
+                                                #-=MWP=- add more information to this 
+                                                if ($SLADomain.numFilesets -gt 0) {
+                                                    Section -Style Heading5 "Filesets" {
+                                                        $Objects = Get-RubrikFileset -SLAID $SLADomain.Id | Select -Property *,@{N="slaAssignment";E={"Direct"}} | Sort-Object -Property Name
+                                                        $Objects | Table -Name "Protected Filesets" -Columns Name,slaAssignment,hostname -Headers 'Fileset Name','Assignment Type','Attached to host' -ColumnWidths 33,33,34
+                                                    }
+                                                }
+                                                if ($SLADomain.numWindowsVolumeGroups -gt 0) {
+                                                    Section -Style Heading5 "Windows Volume Groups" {
+                                                        $Objects = Get-RubrikVolumeGroup -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                        $Objects | Table -Name "Protected Volume Groups" -Columns Name,slaAssignment,hostname -Headers 'Volume Group Name','Assignment Type','Attached to Host' -ColumnWidths 33,33,34
+                                                    }
+                                                }
+                                                if ($SLADomain.numManagedVolumes -gt 0) {
+                                                    Section -Style Heading5 "Managed Volumes" {
+                                                        $Objects = Get-RubrikManagedVolume -SLAID $SLADomain.Id | Sort-Object -Property Name
+                                                        $Objects | Table -Name "Protected Managed Volumes" -Columns Name,slaAssignment -Headers 'Managed Volume Name','Assignment Type' -ColumnWidths 50,50
+                                                    }
+                                                }
+                                                #-=MWP=- reserve for NAS Shares /internal/host_fileset/share
+                                                # reserve for storage volume group protection
+                                            }
+                                            else {
+                                                Paragraph ("There are no objects assigned to this SLA Domain")
+                                            }
+                                        }
                                     }
                                 }
                             }
+                        } # End of ForEach SLA Domain
+                    } # End of Style Heading2 SLA Domains
+                }
+                if ($InfoLevel.ProtectedObjects -ge 1) {
+                    Section -Style Heading2 "Protected Objects" {
+                        Paragraph("The following shows details around all protected objects configured within the Rubrik cluster")
+
+                        Section -Style Heading3 "VMware Virtual Machines" {
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local'  | where {$_.effectiveSlaDomainName -ne 'Unprotected' }
+                                $VMwareVMs | Sort-Object -Property Name | Table -Name "Protected VMware VMs" -Columns Name,effectiveSlaDomainName, slaAssignment -Headers 'VM Name','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' | Select -Property *,@{N="RBSInstalled";E={$_.agentStatus.agentStatus}},@{N="vCenterName";E={ ($_.infraPath | Where { $_.managedId -like 'vCenter::*' } ).name }} | where {$_.effectiveSlaDomainName -ne 'Unprotected' }
+                                $VMwareVMs | Sort-Object -Property Name | Table -Name "Protected VMware VMs" -Columns Name,ipAddress,vCenterName,RBSInstalled,effectiveSlaDomainName, slaAssignment -Headers 'VM Name','IP Address', 'vCenter','RBS Status','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                #$VMwareVMs = Get-RubrikVM -PrimaryClusterId 'local' -DetailedObject | select *,@{N="ComputeCluster";E={ ($_.infraPath | Where { $_.managedId -like 'ComputeCluster::*' } ).name }}, @{N="Datacenter";E={ ($_.infraPath | Where { $_.managedId -like 'DataCenter::*' } ).name }},@{N="ESXiHost";E={ ($_.infraPath | Where { $_.managedId -like 'VMwareHost::*' } ).name }},@{N="vCenterName";E={ ($_.infraPath | Where { $_.managedId -like 'vCenter::*' } ).name }} | Where {$_.effectiveSlaDomainName -ne 'Unprotected'} |Sort-Object -Property ESXiHost,Cluster,Datacenter,vCenter,Name
+                                # Below query is faster than looping through all -detailedObjects like done above.
+                                $VMwareVMs = get-rubrikvm -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected'}  | foreach { Get-RubrikVM -id $_.id  | Select *,@{N="OldestBackup";E={ ($_.snapshots | sort-object -Property Date | Select -First 1).date }},@{N="LatestBackup";E={ ($_.snapshots | sort-object -Property Date | Select -Last 1).date }},  @{N="ComputeCluster";E={ ($_.infraPath | Where { $_.managedId -like 'ComputeCluster::*' } ).name }}, @{N="Datacenter";E={ ($_.infraPath | Where { $_.managedId -like 'DataCenter::*' } ).name }},@{N="ESXiHost";E={ ($_.infraPath | Where { $_.managedId -like 'VMwareHost::*' } ).name }},@{N="vCenterName";E={ ($_.infraPath | Where { $_.managedId -like 'vCenter::*' } ).name }}}
+                                $VMwareVMs | Sort-Object -Property Name | Table -Name "Protected VMware VMs" -Columns Name,ipAddress,guestOsType,ESXiHost,ComputeCluster,Datacenter,vCenterName,isAgentRegistered,vmwareToolsInstalled,effectiveSlaDomainName, slaAssignment,snapshotcount,OldestBackup,LatestBackup -Headers 'VM Name','IP Address', 'Guest OS', 'ESXi Host', 'Cluster', 'Datacenter', 'vCenter','RBS Installed','VMware Tools', 'SLA Domain','Assignment Type','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
                         }
-                    } # End of ForEach SLA Domain
-                } # End of Style Heading2 SLA Domains
-                Section -Style Heading2 "Protected Objects" {
-                    Paragraph("The following shows details around all protected objects configured within the Rubrik cluster")
-                } # end of Style Heading2 Protected Objects
+                        Section -Style Heading3 "Hyper-V Virtual Machines" {
+                            
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' }
+                                $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" -Columns Name,effectiveSlaDomainName, slaAssignment -Headers 'VM Name','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property *,@{N="SCVMMServer";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }} }
+                                $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" -Columns Name,SCVMMServer,isAgentRegistered,effectiveSlaDomainName, slaAssignment -Headers 'VM Name', 'SCVMM Server','RBS Registered','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property *,@{N="SCVMMServer";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},@{N="HyperVCluster";E={ ($_.infraPath | Where { $_.Id -like 'HypervCluster::*' } ).name }},@{N="HyperVServer";E={ ($_.infraPath | Where { $_.Id -like 'HypervServer::*' } ).name }},@{N="SnapshotCount";E={ ( Get-RubrikSnapshot -id $_.id).count }},@{N="LatestBackup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},@{N="OldestBackup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }}  }
+                                $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" -Columns Name,HyperVServer,HyperVCluster,SCVMMServer,isAgentRegistered,effectiveSlaDomainName, slaAssignment,SnapshotCount,OldestBackup,LatestBackup -Headers 'VM Name','Hyper-V Server','Hyper-V Cluster', 'SCVMM Server','RBS Registered','SLA Domain','Assignment Type','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
+                        }
+                        Section -Style Heading3 "Nutanix Virtual Machines" {
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' }
+                                $NutanixVMs | Sort-Object -Property Name | Table -Name "Protected Nutanix VMs" -Columns Name,effectiveSlaDomainName, slaAssignment -Headers 'VM Name','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikNutanixVM -id $_.id }
+                                $NutanixVMs | Sort-Object -Property Name | Table -Name "Protected Nutanix VMs" -Columns Name,nutanixClusterName,isAgentRegistered,effectiveSlaDomainName, slaAssignment -Headers 'VM Name', 'Cluster Name','RBS Registered','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikNutanixVM -id $_.id | Select -Property *,@{N="SnapshotCount";E={ ( Get-RubrikSnapshot -id $_.id).count }},@{N="LatestBackup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},@{N="OldestBackup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }}  }
+                                $NutanixVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" -Columns Name,nutanixClusterName,isAgentRegistered,effectiveSlaDomainName, slaAssignment,SnapshotCount,OldestBackup,LatestBackup -Headers 'VM Name','Nutanix Cluster','RBS Registered','SLA Domain','Assignment Type','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
+                        }
+                        Section -Style Heading3 "MSSQL Databases" {
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $Databases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' }
+                                $Databases | Sort-Object -Property Name | Table -Name "Protected MSSQL Databases" -Columns Name, recoveryModel, effectiveSlaDomainName, slaAssignment -Headers 'Database Name','Recovery Model','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $Databases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikDatabase -id $_.id | Select -Property *,@{N="instanceCalc";E={if ($null -eq $_.instanceName) {"N/A"} else {$_.instanceName}  }},@{N="modelCalc";E={if ($null -eq $_.recoveryModel) {"N/A"} else {$_.recoveryModel}  }},  @{N="LocationName";E={$_.rootProperties.rootName }} }
+                                $Databases | Sort-Object -Property Name | Table -Name "Protected MSSQL Databases" -Columns Name, instanceCalc, LocationName, modelCalc, logBackupFrequencyInSeconds, logBackupRetentionHours, effectiveSlaDomainName, slaAssignment -Headers 'Database Name','Instance','Location','Recovery Model','Log Backup Frequency (seconds)','Log Retention (hours)','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                $Databases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikDatabase -id $_.id | Select -Property *,@{N="instanceCalc";E={if ($null -eq $_.instanceName) {"N/A"} else {$_.instanceName}  }},@{N="modelCalc";E={if ($null -eq $_.recoveryModel) {"N/A"} else {$_.recoveryModel}  }},  @{N="LocationName";E={$_.rootProperties.rootName }} }
+                                $Databases | Sort-Object -Property Name | Table -Name "Protected MSSQL Databases" -Columns Name, instanceCalc, LocationName, modelCalc, logBackupFrequencyInSeconds, logBackupRetentionHours, isLogShippingSecondary, isInAvailabilityGroup, copyOnly, effectiveSlaDomainName, slaAssignment, snapshotCOunt, oldestRecoveryPoint,latestRecoveryPoint -Headers 'Database Name','Instance','Location','Recovery Model','Log Backup Frequency (seconds)','Log Retention (hours)','Secondary Log Shipping DB','Is in Availability Group','Copy Only','SLA Domain','Assignment Type','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
+                        }
+                        Section -Style Heading3 "Oracle Databases" {
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $Databases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' }
+                                $Databases | Sort-Object -Property Name | Table -Name "Protected Oracle Databases" -Columns Name, sid, effectiveSlaDomainName, slaAssignment -Headers 'Database Name','SID','SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $Databases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikOracleDb -id $_.id  }
+                                $Databases | Sort-Object -Property Name | Table -Name "Protected Oracle Databases" -Columns Name, sid, numTablespaces, standaloneHostName, isArchiveLogModeEnabled,logBackupFrequencyInMinutes,logRetentionHours, effectiveSlaDomainName, slaAssignment -Headers 'Database Name','SID', '# Tablespaces', 'Oracle Host', 'Log Enabled','Log Backup Frequency (minutes)','Log Retention (hours)', 'SLA Domain','Assignment Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                $Databases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikOracleDb -id $_.id  }
+                                $Databases | Sort-Object -Property Name | Table -Name "Protected Oracle Databases" -Columns Name, sid, numTablespaces, standaloneHostName, isArchiveLogModeEnabled,logBackupFrequencyInMinutes,logRetentionHours, effectiveSlaDomainName, slaAssignment, snapshotCount, oldestRecoveryPoint, latestRecoveryPoint -Headers 'Database Name','SID', '# Tablespaces', 'Oracle Host', 'Log Enabled','Log Backup Frequency (minutes)','Log Retention (hours)', 'SLA Domain','Assignment Type','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
+                        }
+                        Section -Style Heading3 "Filesets" {
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId }
+                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -Columns hostName, operatingSystemType, Name, effectiveSlaDomainName -Headers 'Hostname', 'Operating System','Fileset Name','SLA Domain'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property *,@{N="NewIncludes";E={$_.includes | Out-String }},@{N="NewExcludes";E={$_.excludes | Out-String}}
+                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -Columns hostName, operatingSystemType, Name, newincludes,newexcludes, effectiveSlaDomainName -Headers 'Hostname', 'Operating System','Fileset Name','Includes','Excludes', 'SLA Domain'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property *,@{N="NewIncludes";E={$_.includes | Out-String }},@{N="NewExcludes";E={$_.excludes | Out-String}},@{N="OldestBackup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -First 1).date}},@{N="LatestBackup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -Last 1).date}}
+                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -Columns hostName, operatingSystemType, Name, newincludes,newexcludes, effectiveSlaDomainName, snapshotCount, OldestBackup, LatestBackup -Headers 'Hostname', 'Operating System','Fileset Name','Includes','Excludes', 'SLA Domain','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
+                        }
+                        Section -Style Heading3 "NAS Shares" {
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId }
+                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -Columns hostName,  Name, effectiveSlaDomainName -Headers 'Hostname', 'Fileset Name','SLA Domain'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property *,@{N="NewIncludes";E={$_.includes | Out-String }},@{N="NewExcludes";E={$_.excludes | Out-String}}
+                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -Columns hostName,  Name, newincludes,newexcludes, effectiveSlaDomainName -Headers 'Hostname', 'Fileset Name','Includes','Excludes', 'SLA Domain'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property *,@{N="NewIncludes";E={$_.includes | Out-String }},@{N="NewExcludes";E={$_.excludes | Out-String}},@{N="OldestBackup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -First 1).date}},@{N="LatestBackup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -Last 1).date}}
+                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -Columns hostName,  Name, newincludes,newexcludes, effectiveSlaDomainName, snapshotCount, OldestBackup, LatestBackup -Headers 'Hostname', 'Fileset Name','Includes','Excludes', 'SLA Domain','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
+                        }
+                        Section -Style Heading3 "Volume Groups" {
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' }
+                                $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" -Columns hostName, Name, effectiveSlaDomainName, slaAssignment -Headers 'Hostname', 'Volume Group Name','SLA Domain','Assignement Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | ForEach { Get-RubrikVolumeGroup -id $_.id | Select -Property *,@{N="NewIncludes";E={$_.includes | Out-String }} }
+                                $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" -Columns hostName, Name, includes,effectiveSlaDomainName, slaAssignment -Headers 'Hostname', 'Volume Group Name','Includes','SLA Domain','Assignement Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | ForEach { Get-RubrikVolumeGroup -id $_.id | Select -Property *,@{N="NewIncludes";E={$_.includes | Out-String }},@{N="SnapshotCount";E={ ( Get-RubrikSnapshot -id $_.id).count }},@{N="LatestBackup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},@{N="OldestBackup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }} }
+                                $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" -Columns hostName, Name, includes,effectiveSlaDomainName, slaAssignment,snapshotcount,oldestbackup,latestbackup -Headers 'Hostname', 'Volume Group Name','Includes','SLA Domain','Assignement Type','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
+                        }                       
+                        Section -Style Heading3 "Managed Volumes" {
+                                                    
+                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                                $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' }
+                                $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes" -Columns name, volumeSize, effectiveSlaDomainName, slaAssignment -Headers 'Name', 'Volume Size','SLA Domain','Assignement Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                                $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' }
+                                $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes" -Columns name, volumeSize, usedSize, isWritable, state, numChannels, effectiveSlaDomainName, slaAssignment -Headers 'Name', 'Volume Size','Used', 'Is Writable','State','# Channels','SLA Domain','Assignement Type'
+                            }
+                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                                $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property *,@{N="LatestBackup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},@{N="OldestBackup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }}
+                                $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes" -Columns name, volumeSize, usedSize, isWritable, state, numChannels, effectiveSlaDomainName, slaAssignment,snapshotCount,OldestBackup,LatestBackup -Headers 'Name', 'Volume Size','Used', 'Is Writable','State','# Channels','SLA Domain','Assignement Type','Snapshot Count','Oldest Backup','Latest Backup' -List -ColumnWidths 30,70
+                            }
+                        }  
+                    } # end of Style Heading2 Protected Objects
+                }
                 Section -Style Heading2 "Snapshot Retention" {
                     Paragraph ("The following displays all relic, expired, and unmanaged objects within the Rubrik cluster")
+
+                    if ($InfoLevel.SnapshotRetention -in (1,2)) {
+
+                    }
+                    elseif ($InfoLevel.SnapshotRetention -in (3,4)) {
+
+                    }
+                    elseif ($InfoLevel.SnapshotRetention -ge 5) {
+                        
+                    }
+
+                }
+
                 } # end of Style Heading2 Snapshot Retention
                 Section -Style Heading2 "Custom Reports" {
                     Paragraph ("The following outlines any custom reports created within Rubrik.")
