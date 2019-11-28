@@ -94,59 +94,56 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
 
                         # Cluster Information Table
                         [pscustomobject]$ClusterSummary | Table -Name $ClusterSummary.Name -ColumnWidths 30,70 -List
-                        
-
-                        $StorageInfo = Get-RubrikClusterStorage
-                        
-                        $StorageSummary = [ordered]@{
-                            'Total Usable Storage (TB)' = $StorageInfo.TotalUsableStorageInTb
-                            'Used Storage (TB)' = $StorageInfo.UsedStorageInTb
-                            'Available Storage (TB)' = $StorageInfo.AvailableStorageInTb
-                        }
-                        if ($InfoLevel.Cluster -ge 3) {
-                            $StorageSummary.Add('Archival Storage Used (TB)',$StorageInfo.ArchivalUsageInTb)
-                            $StorageSummary.Add('Live Mount Storage Used (GB)', $StorageInfo.LiveMountStorageInGb)
-                        }
-                        if ($InfoLevel.Cluster -eq 5) {
-                            $StorageSummary.Add('Local Data Reduction Percentage', $StorageInfo.LocalDataReductionPercent)
-                            $StorageSummary.Add('Archival Data Reduction Percentage', $StorageInfo.ArchivalDataReductionPercent)
-                            $StorageSummary.Add('Average Daily Growth (GB)', $StorageInfo.AverageGrowthPerDayInGb)
-                            $StorageSummary.Add('Estimated Runway (days)', $StorageInfo.EstimatedRunwayInDays)
-                        }
-
-                        
+                                               
                         Section -Style Heading3 'Cluster Storage Details' {
+                            $StorageInfo = Get-RubrikClusterStorage
+                            $StorageSummary = [ordered]@{
+                                'Total Usable Storage (TB)' = $StorageInfo.TotalUsableStorageInTb
+                                'Used Storage (TB)' = $StorageInfo.UsedStorageInTb
+                                'Available Storage (TB)' = $StorageInfo.AvailableStorageInTb
+                            }
+                            if ($InfoLevel.Cluster -ge 3) {
+                                $StorageSummary.Add('Archival Storage Used (TB)',$StorageInfo.ArchivalUsageInTb)
+                                $StorageSummary.Add('Live Mount Storage Used (GB)', $StorageInfo.LiveMountStorageInGb)
+                            }
+                            if ($InfoLevel.Cluster -eq 5) {
+                                $StorageSummary.Add('Local Data Reduction Percentage', $StorageInfo.LocalDataReductionPercent)
+                                $StorageSummary.Add('Archival Data Reduction Percentage', $StorageInfo.ArchivalDataReductionPercent)
+                                $StorageSummary.Add('Average Daily Growth (GB)', $StorageInfo.AverageGrowthPerDayInGb)
+                                $StorageSummary.Add('Estimated Runway (days)', $StorageInfo.EstimatedRunwayInDays)
+                            }
                             [pscustomobject]$StorageSummary | Table -Name "Cluster Storage Details" -ColumnWidths 30,70 -List
                         }
-
-
 
                         # Node Overview Table
                         if ($InfoLevel.Cluster -ge 3) {
                             Section -Style Heading3 'Member Nodes' { 
-                                $NodeInfo = Get-RubrikNode | Select -Property @{Name="Brik ID";Expression={$_.brikId}},
-                                    @{Name="ID";Expression={$_.id}},
-                                    @{Name="Status";Expression={$_.status}},
-                                    @{Name="Support Tunnel";Expression={$_.supportTunnel}}
-                                $NodeInfo | Table -Name "Cluster Node Information" -ColumnWidths 25,12,12,25,25
+                                $NodeInfo = Get-RubrikNode 
+                                $NodeInfo | Table -Name "Cluster Node Information" -ColumnWidths 25,12,12,25,25 -Columns brikId,id,status,supportTunnel -Headers 'Brik ID','ID','Status','Support Tunnel'
                             }
                         } # End InfoLevel -ge 3     
 
                         # Cluster Info - Networking
                         Section -Style Heading3 'Network Settings' {
                             Paragraph "The following contains network related settings for the cluster"
-                            # Gather Information for level 1-5
-                            $NodeDetails = Get-RubrikClusterNetworkInterface | Select -Property @{Name="Interface Name";Expression={$_.interfaceName}},
-                                @{Name="Type";Expression={$_.interfaceType}},
-                                @{Name="Node";Expression={$_.node}},
-                                @{Name="IP Addresses";Expression={$_.ipAddresses}},
-                                @{Name="Subnet Mask";Expression={$_.netmask}}
-                            $DNSDetails = Get-RubrikDNSSetting
-                            $DNSDetails = [ordered]@{
-                                'DNS Servers'       = ($DNSDetails.DNSServers | Sort-Object) -join ', '
-                                'Search Domains'    = ($DNSDetails.DNSSearchDomain | Sort-Object) -join ', '
+                            
+                            
+                            Section -Style Heading4 'Cluster Interfaces' { 
+                                $NodeDetails = Get-RubrikClusterNetworkInterface
+                                $NodeDetails | Table -Name 'Cluster Node Information' -Columns interfaceName,interfaceType,node,ipAddresses,netmask -Headers 'Interface Name','Type','Node','IP Addresses','Subnet Mask'
                             }
-                            $ProxyDetails = Get-RubrikProxySetting
+
+
+                            Section -Style Heading4 'DNS Configuration' { 
+                                $DNSDetails = Get-RubrikDNSSetting
+                                $DNSDetails = [ordered]@{
+                                    'DNS Servers'       = ($DNSDetails.DNSServers | Out-String)
+                                    'Search Domains'    = ($DNSDetails.DNSSearchDomain | Out-String)
+                                }
+                                [pscustomobject]$DNSDetails | Table -Name 'DNS Configuration' -List
+                            }
+
+                            
 
                             
                             if ($InfoLevel.Cluster -lt 3) {
@@ -190,12 +187,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     $NetworkThrottleDetails += [pscustomobject]$inObj
                                 }
                             }
-                            Section -Style Heading4 'Cluster Interfaces' { 
-                                $NodeDetails | Table -Name 'Cluster Node Information' 
-                            }
-                            Section -Style Heading4 'DNS Configuration' { 
-                                [pscustomobject]$DNSDetails | Table -Name 'DNS Configuration' -List
-                            }
                             Section -Style Heading4 'NTP Configuration' {  
                                 $NTPDetails | Table -Name 'NTP Configuration'
                             }
@@ -203,166 +194,135 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $NetworkThrottleDetails | Table -Name 'Network Throttling'
                             }
                             Section -Style Heading4 'Proxy Server' {
+                                $ProxyDetails = Get-RubrikProxySetting
                                 if ($ProxyDetails.length -gt 0) { $ProxyDetails | Table -Name 'Proxy Configuration' }
                                 else { Paragraph "There are currently no proxy servers configured on this cluster"}
                             }
+
                         } # End Heading 3 - Network Settings
                         Section -Style Heading3 'Notification Settings' {
                             Paragraph "The following contains notification settings configured on the cluster"
-                            # Gather Information
-                            $EmailDetails = Get-RubrikEmailSetting | Select -Property id, smtpHostname, smtpPort, smtpUsername, fromEmailId, smtpSecurity
-                            
-                            $SNMPInfo = Get-RubrikSNMPSetting
-                            $inObj = [ordered]@{
-                                    'Community String' = $($SNMPInfo.communityString)
-                                    'Port'  = $SNMPInfo.snmpAgentPort
-                                    'Enabled'  = $SNMPInfo.isEnabled
-                            }
-                            $strTraps = New-Object Text.StringBuilder 
-                            foreach ($trap in $SNMPInfo.trapReceiverConfigs) {
-                                $strTraps.Append("Address: $($trap.address)")
-                                $strTraps.Append(" | Port: $($trap.port)")
-                                $strTraps.Append("`n")
-                            }
-                            $inObj.add('Reciever Configurations', $strTraps)
-                            $SNMPDetails = [pscustomobject]$inObj
-
-                            $NotificationDetails = Get-RubrikNotificationSetting | Select -Property @{Name="ID";Expression={$_.id}},
-                                @{Name="Event Types";Expression={$_.eventTypes}},
-                                @{Name="SNMP Addresses";Expression={$_.snmpAddresses}},
-                                @{Name="Email Addresses";Expression={$_.emailAddresses}},
-                                @{Name="Send to Syslog";Expression={$_.souldSendToSyslog}}
-                                
-                            
+                           
                             
                             Section -Style Heading4 'Email Settings' { 
-                                if ($EmailDetails.Length -gt 0) { $EmailDetails | Table -Name 'SNMP Settings' }
+                                $EmailDetails = Get-RubrikEmailSetting
+                                if ($EmailDetails.Length -gt 0) { $EmailDetails | Table -Name 'Email Details' -Columns id,smtpHostname,smtpPort,smtpUsername,fromEmailId,smtpSecurity -Headers 'ID','SMTP Server','Port','Username','From Email','Security' }
                                 else { Paragraph "There are currently no email settings configured on this cluster"}
                             }
                             Section -Style Heading4 'SNMP Settings' { 
+                                $SNMPInfo = Get-RubrikSNMPSetting
+                                $inObj = [ordered]@{
+                                        'Community String' = $($SNMPInfo.communityString)
+                                        'Port'  = $SNMPInfo.snmpAgentPort
+                                        'Enabled'  = $SNMPInfo.isEnabled
+                                }
+                                $strTraps = New-Object Text.StringBuilder 
+                                foreach ($trap in $SNMPInfo.trapReceiverConfigs) {
+                                    $strTraps.Append("Address: $($trap.address)")
+                                    $strTraps.Append(" | Port: $($trap.port)")
+                                    $strTraps.Append("`n")
+                                }
+                                $inObj.add('Reciever Configurations', $strTraps)
+                                $SNMPDetails = [pscustomobject]$inObj
                                 $SNMPDetails | Table -Name 'SNMP Settings' 
                             }
+                            
                             Section -Style Heading4 'Notification Settings' { 
-                                $NotificationDetails | Table -Name 'Notification Settings' 
+                                $NotificationDetails = Get-RubrikNotificationSetting | Select -Property *,@{N="NewEventTypes";E={$_.eventTypes | Out-String}}
+                                $NotificationDetails | Table -Name 'Notification Settings' -Columns id,neweventTypes,snmpAddresses,emailAddresses,shouldSendToSyslog -Headers 'ID','Event Types','SNMP Addresses','Email Addresses','Send to syslog'
                             }
                         } # End Heading 3 - NOtification Settings
                         Section -Style Heading3 'Security Settings' {
                             Paragraph "The following contains security related settings configured on the cluster"
-                            # Gather Information
-                            # Global Configs for all InfoLevels
-                            $IPMIInformation = Get-RubrikIPMI
-                            $inObj =[ordered] @{
-                                'IPMI Available'        = $IPMIInformation.isAvailable
-                                'HTTPS Access'          = $IPMIInformation.access.https
-                                'iKVM Access'           = $IPMIInformation.access.iKvm
-                                'SSH Access'            = $IPMIInformation.access.ssh
-                                'Virtual Media Access'  = $IPMIInformation.access.virtualMedia
-                            }
-                            $IPMIDetails = [pscustomobject]$inObj
-                            $SecurityInformation = Get-RubrikSecurityClassification | Select @{N="Color";E={$_.classificationColor}},
-                                @{N="Message";E={$_.classificationMessage}}
-
-
-                            #Individual configs for specifed InfoLevels
-                            if ($InfoLevel.Cluster -lt 3) {
-                                $SMBDomainInformation = Get-RubrikSMBDomain | Select @{Name="Name";Expression={$_.name}},
-                                    @{Name="Status";Expression={$_.status}},
-                                    @{Name="Service Account";Expression={$_.serviceAccount}}
-                                $SyslogInformation = Get-RubrikSyslogServer | Select @{N="Hostname";E={$_.hostname}},
-                                    @{N="Protocol";E={$_.protocol}} 
-                                $UserDetails = Get-RubrikUser | Select @{N="Username";E={$_.username}},
-                                    @{N="First Name";E={$_.firstName}},
-                                    @{N="Last Name";E={$_.lastName}},
-                                    @{N="Email Address";E={$_.emailAddress}} | Sort-Object -Property Username
-                                $LDAPDetails = Get-RubrikLDAP | Select @{N="Name";E={$_.name}},
-                                    @{N="Domain Type";E={$_.domainType}},
-                                    @{N="Initial Refresh";E={$_.initialRefreshStatus}}
-                            }
-                            else {
-                                $SMBSecurityInformation = Get-RubrikSMBSecurity
-                                $SMBDomainInformation = Get-RubrikSMBDomain | Select @{N="Name";E={$_.name}},
-                                    @{N="Status";E={$_.status}},
-                                    @{N="Service Account";E={$_.serviceAccount}},
-                                    @{N="Sticky SMB Service";E={$_.isStickySmbService}},
-                                    @{Name = 'Force SMB Security'; Expression = {$SMBSecurityInformation.enforceSmbSecurity}}
-                                $SyslogInformation = Get-RubrikSyslogServer | Select @{N="ID";E={$_.id}},
-                                    @{N="Hostname";E={$_.hostname}},
-                                    @{N="Port";E={$_.port}}
-                                $UserInformation = Get-RubrikUser | Select UserName, FirstName, LastName, emailAddress, AuthDomainID, ID, 
-                                    @{ Name = 'Permissions';  Expression = {Get-RubrikUserRole -id $_.id | Select @{Name='Perms'; Expression = {"ReadOnlyAdmin = $($_.readOnlyAdmin)`nAdmin = $($_.admin)`nOrgAdmin = $($_.orgAdmin)`nManagedVolumeAdmin = $($_.managedVolumeAdmin)`nOrganization=$($_.organization)`nManagedVolumeUser = $($_.managedVolumeUser)`nendUser = $($_.endUser)"}}}} | Sort-Object -Property Username
-                                $UserDetails = @()
-                                foreach ($user in $UserInformation) {
-                                    $inObj =[ordered] @{
-                                        'Username'        = $user.Username
-                                        'First Name'          = $user.FirstName
-                                        'Last Name'           = $user.LastName
-                                        'Email Address'   = $User.emailAddress
-                                        'Auth Domain ID'  = $user.AuthDomainID
-                                        'ID'                = $user.id
-                                        'Permissions'   = $user.permissions.perms
-                                    } 
-                                    $UserDetails += [pscustomobject]$inObj
-                                }
-                                #-=MWP=- fix below
-                                $LDAPDetails = Get-RubrikLDAP | Select Name, DomainType, InitialRefreshStatus, dynamicDnsName, serviceAccount, bindUserName, @{Name="AdvancedOptions"; Expression = {$_.advancedOptions | Out-String}}
-                            }
-                            
-                            # Add User Permissions to $UserInformation                
+                           
                             Section -Style Heading4 'IPMI Settings' { 
+                                $IPMIInformation = Get-RubrikIPMI
+                                $inObj =[ordered] @{
+                                    'IPMI Available'        = $IPMIInformation.isAvailable
+                                    'HTTPS Access'          = $IPMIInformation.access.https
+                                    'iKVM Access'           = $IPMIInformation.access.iKvm
+                                    'SSH Access'            = $IPMIInformation.access.ssh
+                                    'Virtual Media Access'  = $IPMIInformation.access.virtualMedia
+                                }
+                                $IPMIDetails = [pscustomobject]$inObj
                                 $IPMIDetails | Table -Name 'IPMI Settings' 
                             }
-
-                            Section -Style Heading4 'SMB Domains' { 
+                            Section -Style Heading4 'SMB Domains' {
+                                if ($InfoLevel.Cluster -in (1,2)){
+                                    $SMBDomainInformation = Get-RubrikSMBDomain | Select @{Name="Name";Expression={$_.name}},
+                                        @{Name="Status";Expression={$_.status}},
+                                        @{Name="Service Account";Expression={$_.serviceAccount}}
+                                }
+                                else {
+                                    $SMBSecurityInformation = Get-RubrikSMBSecurity
+                                    $SMBDomainInformation = Get-RubrikSMBDomain | Select @{N="Name";E={$_.name}},
+                                        @{N="Status";E={$_.status}},
+                                        @{N="Service Account";E={$_.serviceAccount}},
+                                        @{N="Sticky SMB Service";E={$_.isStickySmbService}},
+                                        @{Name = 'Force SMB Security'; Expression = {$SMBSecurityInformation.enforceSmbSecurity}}
+                                } 
                                 $SMBDomainInformation | Table -Name 'SMB Domains' 
                             }
-
                             Section -Style Heading4 'Syslog Settings' { 
-                                $SyslogInformation | Table -Name 'Syslog Settings' 
+                                $SyslogInformation = Get-RubrikSyslogServer 
+                                $SyslogInformation | Table -Name 'Syslog Settings' -Columns hostname,protocol,port -Headers 'Hostname','Protocol','Port'
+                            }
+                            Section -Style Heading4 'Security Classification Settings' {
+                                $SecurityInformation = Get-RubrikSecurityClassification 
+                                $SecurityInformation | Table -Name 'Security Classification Settings' -Columns classificationColor,classificationMessage -Headers 'Color','Message'
                             }
 
-                            Section -Style Heading4 'Security Classification Settings' { 
-                                $SecurityInformation | Table -Name 'Security Classification Settings' 
-                            }
-                            
-                            if ($InfoLevel.Cluster -lt 3) {
-                                Section -Style Heading4 'User Details' { 
-                                    $UserDetails | Table -Name 'User Details'
+                            Section -Style Heading4 'User Details' { 
+                                if ($InfoLevel.Cluster -in (1,2)){
+                                    $UserDetails = Get-RubrikUser 
+                                    $UserDetails | Sort-Object -Property Username | Table -Name 'User Details' -Columns username,firstname,lastname,emailaddress -Headers 'Username','First Name','Last Name','Email Address'
                                 }
-
-                                Section -Style Heading4 'LDAP Settings' { 
-                                    $LDAPDetails | Table -Name 'LDAP Settings' 
-                                }
-                            }
-                            else {
-                                Section -Style Heading4 'User Details' { 
+                                else {
+                                    $UserInformation = Get-RubrikUser | Select UserName, FirstName, LastName, emailAddress, AuthDomainID, ID, 
+                                        @{ Name = 'Permissions';  Expression = {Get-RubrikUserRole -id $_.id | Select @{Name='Perms'; Expression = {"ReadOnlyAdmin = $($_.readOnlyAdmin)`nAdmin = $($_.admin)`nOrgAdmin = $($_.orgAdmin)`nManagedVolumeAdmin = $($_.managedVolumeAdmin)`nOrganization=$($_.organization)`nManagedVolumeUser = $($_.managedVolumeUser)`nendUser = $($_.endUser)"}}}} | Sort-Object -Property Username
+                                    $UserDetails = @()
+                                    foreach ($user in $UserInformation) {
+                                        $inObj =[ordered] @{
+                                            'Username'        = $user.Username
+                                            'First Name'          = $user.FirstName
+                                            'Last Name'           = $user.LastName
+                                            'Email Address'   = $User.emailAddress
+                                            'Auth Domain ID'  = $user.AuthDomainID
+                                            'ID'                = $user.id
+                                            'Permissions'   = $user.permissions.perms
+                                        } 
+                                        $UserDetails += [pscustomobject]$inObj
+                                    }
                                     $UserDetails | Table -Name 'User Details' -ColumnWidths 20,80 -List
                                 }
-
-                                Section -Style Heading4 'LDAP Settings' { 
+                            }
+                            Section -Style Heading4 'LDAP Settings' { 
+                                if ($InfoLevel.Cluster -in (1,2)) {
+                                    $LDAPDetails = Get-RubrikLDAP 
+                                    $LDAPDetails | Table -Name 'LDAP Settings' -Columns name, domaintype,initialRefreshStatus -Headers 'Name','Domain Type','Initial Refresh Status'
+                                }
+                                else {
+                                    $LDAPDetails = Get-RubrikLDAP | Select Name, DomainType, InitialRefreshStatus, dynamicDnsName, serviceAccount, bindUserName, @{Name="AdvancedOptions"; Expression = {$_.advancedOptions | Out-String}}
                                     $LDAPDetails | Table -Name 'LDAP Settings' -ColumnWidths 20,80 -List
                                 }
-                            }                          
+                            }
                         } # End Heading 3 - Security Settings
+
                         Section -Style Heading3 'Backup Settings' {
                             Paragraph "The following contains backup related settings configured on the cluster"
-                            # Gather Information
-                            # Global Configs for all InfoLevels
-                            $GuestOSCredentials = Get-RubrikGuestOsCredential | Select @{N="Username";E={$_.username}}, @{N="Domain";E={$_.domain}}
-                            $BackupServiceDeployment = Get-RubrikBackupServiceDeployment | Select @{Name="Automatically Deploy RBS"; Expression = {$_.isAutomatic}}
-
+                            
                             Section -Style Heading4 'Guest OS Credentials' { 
-                                $GuestOSCredentials | Table -Name 'Guest OS Credentials' -ColumnWidths 50,50
+                                $GuestOSCredentials = Get-RubrikGuestOsCredential 
+                                $GuestOSCredentials | Table -Name 'Guest OS Credentials' -ColumnWidths 50,50 -Columns username,domain -Headers 'Username','Domain'
                             }
                             Section -Style Heading4 'Miscellaneous Backup Configurations' { 
-                                $BackupServiceDeployment | Table -Name 'Miscellaneous Backup Configuration' -ColumnWidths 30,70 -List
+                                $BackupServiceDeployment = Get-RubrikBackupServiceDeployment | Select @{Name="Automatically Deploy RBS"; Expression = {$_.isAutomatic}}
+                                $BackupServiceDeployment | Table -Name 'Miscellaneous Backup Configuration' -ColumnWidths 30,70 -List 
                             }
                         } # End Heading 3 - Backup Settings
                         Section -Style Heading3 'Backup Sources' {
                             Paragraph "The following contains information around the backup sources configured on the cluster"
-                            # Gather Information
-                            # Global Configs for all InfoLevels
-                           
-                            # Level based info gathering
+                            
                             if ($InfoLevel.Cluster -lt 3) {
                                 $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
@@ -436,7 +396,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="Is Relic";E={$_.isRelic}}
                             }
 
-                            
                             Section -Style Heading4 'VMware vCenter Servers' { 
                                 Paragraph "The following table outlines the VMware vCenter Servers which have been added to the Rubrik cluster"
                                 if ($InfoLevel.Cluster -lt 3) { $VMwarevCenter | Table -Name 'VMware vCenter Server'}
@@ -475,8 +434,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         } # End Heading 3 Backup Sources
                         Section -Style Heading3 'Replication Configuration' {
                             Paragraph "The following contains information  around the replication configuration on the cluster"
-                            # Gather Information
-                            # Global Configs for all InfoLevels
+                            #-=MWP=- left off here
                             #-=MWP=- create checks for 0 results on all items
                             $ReplicationSources = Get-RubrikReplicationSource | Select @{N="Cluster Name";E={$_.sourceClusterName}},
                                 @{N="Cluster Address";E={$_.sourceClusterAddress}},
@@ -1056,25 +1014,19 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         }  
                     } # end of Style Heading2 Protected Objects
                 }
-                Section -Style Heading2 "Snapshot Retention" {
-                    Paragraph ("The following displays all relic, expired, and unmanaged objects within the Rubrik cluster")
-
-                    if ($InfoLevel.SnapshotRetention -in (1,2)) {
-
+                if ($InfoLevel.SnapshotRetention -ge 1) {
+                    Section -Style Heading2 "Snapshot Retention" {
+                        Paragraph ("The following displays all relic, expired, and unmanaged objects within the Rubrik cluster")
+                        $UnmanagedObjects = Get-RubrikUnmanagedObject
+                        if ($InfoLevel.SnapshotRetention -in (1,2)) {
+                            $UnmanagedObjects | sort-object -Property Name, objecttype | Table -Name "Unmanaged Objects" -Columns Name,objectType,retentionSlaDomainName -Headers 'Name','ObjectType','Retention SLA Domain'
+                        }
+                        elseif ($InfoLevel.SnapshotRetention -in (3,4,5)) {
+                            $UnmanagedObjects | sort-object -Property Name, objecttype | Table -Name "Unmanaged Objects" -Columns Name,objectType,retentionSlaDomainName,autoSnapshotCount, manualSnapshotCount,localStorage,archiveStorage,unmanagedStatus -Headers 'Name','ObjectType','Retention SLA Domain','Automatic Snapshots','Manual Snapshots','Local Storage','Archival Storage','Unmanaged Status' -List -ColumnWidths 30,70
+                        }
                     }
-                    elseif ($InfoLevel.SnapshotRetention -in (3,4)) {
-
-                    }
-                    elseif ($InfoLevel.SnapshotRetention -ge 5) {
-                        
-                    }
-
-                }
 
                 } # end of Style Heading2 Snapshot Retention
-                Section -Style Heading2 "Custom Reports" {
-                    Paragraph ("The following outlines any custom reports created within Rubrik.")
-                } # end of Style Heading2 Custom Reports
             }
             
         } # End of if $RubrikCluster
