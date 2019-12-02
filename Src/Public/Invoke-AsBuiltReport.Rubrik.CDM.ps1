@@ -220,7 +220,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     $strTraps.Append(" | Port: $($trap.port)")
                                     $strTraps.Append("`n")
                                 }
-                                $inObj.add('Reciever Configurations', $strTraps)
+                                $inObj.add('Receiver Configurations', $strTraps)
                                 $SNMPDetails = [pscustomobject]$inObj
                                 $SNMPDetails | Table -Name 'SNMP Settings' 
                             }
