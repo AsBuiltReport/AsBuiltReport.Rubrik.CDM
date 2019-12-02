@@ -473,37 +473,37 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     if ( ($ArchiveTargets | Where-Object {$_.locationType -eq 'S3'}  | Measure-Object ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'S3'} | Table -Name 'S3 Archives'
                                     }
-                                    else { Paragraph "There are currenly no S3 targets configured on the cluster."}
+                                    else { Paragraph "There are currently no S3 targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'Glacier Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Measure-Object  ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Table -Name 'Glacier Archives'
                                     }
-                                    else { Paragraph "There are currenly no Glacier targets configured on the cluster."}
+                                    else { Paragraph "There are currently no Glacier targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'Azure Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Measure-Object ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Table -Name 'Azure Archives'
                                     }
-                                    else { Paragraph "There are currenly no Azure targets configured on the cluster."}
+                                    else { Paragraph "There are currently no Azure targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'Google Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Measure-Object  ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Table -Name 'Google Archives'
                                     }
-                                    else { Paragraph "There are currenly no Google targets configured on the cluster."}
+                                    else { Paragraph "There are currently no Google Cloud targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'NFS Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Nfs'}  | Measure-Object ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'NFS'} | Table -Name 'NFS Archives'
                                     }
-                                    else { Paragraph "There are currenly no NFS targets configured on the cluster."}
+                                    else { Paragraph "There are currently no NFS targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'Tape Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Qstar'} | Measure-Object  ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'QStar'} | Table -Name 'Tape Archives'
                                     }
-                                    else { Paragraph "There are currenly no tape targets configured on the cluster."}
+                                    else { Paragraph "There are currently no tape targets configured on the cluster."}
                                 }
                             }
                             else {
@@ -523,7 +523,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                         
                                         $S3Targets | Table -Name 'S3 Archives' -List -ColumnWidths 30,70
                                     }
-                                    else { Paragraph "There are currenly no S3 targets configured on the cluster."}
+                                    else { Paragraph "There are currently no S3 targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'Glacier Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Measure-Object  ).count -gt 0) {
@@ -537,7 +537,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                             @{Name="File Lock Period (seconds)";Expression={$_.definition.fileLockPeriodInSeconds}},
                                             @{Name="NFS Options";Expression={$_.definition.otherNfsOptions}}
                                     }
-                                    else { Paragraph "There are currenly no Glacier targets configured on the cluster."}
+                                    else { Paragraph "There are currently no Glacier targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'Azure Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Measure-Object ).count -gt 0) {
@@ -557,12 +557,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                         
                                         $AzureTargets | Table -Name 'Azure Archive Targets' -List -ColumnWidths 30,70
                                     }
-                                    else { Paragraph "There are currenly no Azure targets configured on the cluster."}
+                                    else { Paragraph "There are currently no Azure targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'Google Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Measure-Object  ).count -gt 0) {
                                     }
-                                    else { Paragraph "There are currenly no Google targets configured on the cluster."}
+                                    else { Paragraph "There are currently no Google Cloud targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'NFS Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'NFS'} | Measure-Object  ).count -gt 0) {
@@ -579,12 +579,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                         
                                         $NFSTargets | Table -Name 'NFS Archive Targets' -List -ColumnWidths 30,70
                                     }
-                                    else { Paragraph "There are currenly no NFS targets configured on the cluster."}
+                                    else { Paragraph "There are currently no NFS targets configured on the cluster."}
                                 }
                                 Section -Style Heading4 'Tape Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Qstar'} | Measure-Object  ).count -gt 0) {
                                     }
-                                    else { Paragraph "There are currenly no tape targets configured on the cluster."}
+                                    else { Paragraph "There are currently no tape targets configured on the cluster."}
                                 }
 
                             }
