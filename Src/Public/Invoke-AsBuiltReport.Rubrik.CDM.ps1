@@ -415,10 +415,13 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 if ($InfoLevel.Cluster -lt 3) { $VMwareVCD | Table -Name 'VMware vCloud Director Clusters' }
                                 else {$VMwareVCD | Table -Name 'VMware vCloud Director Clusters' -ColumnWidths 30,70 -List}
                             } 
+                            #-=MWP=- added same Measure-Object check to all others.
                             Section -Style Heading4 'Hyper-V SCVMM Servers' { 
-                                Paragraph "The following table outlines the SCVMM Servers which have been added to the Rubrik cluster"
-                                if ($InfoLevel.Cluster -lt 3) { $SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' }
-                                else {$SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' -ColumnWidths 30,70 -List }
+                                if (($SCVMMServers | Measure-Object).count -ge 1) {
+                                    Paragraph "The following table outlines the SCVMM Servers which have been added to the Rubrik cluster"
+                                    if ($InfoLevel.Cluster -lt 3) { $SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' }
+                                    else {$SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' -ColumnWidths 30,70 -List }
+                                }
                             } 
                             Section -Style Heading4 'Nutanix Clusters' { 
                                 Paragraph "The following table outlines the Nutanix clusters which have been added to the Rubrik cluster"
@@ -1039,7 +1042,10 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             if ($InfoLevel.ProtectedObjects -in (1,2)) {
                                 $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
                                     @{N="Fileset Name";E={$_.name}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
-                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" 
+                                if ($Filesets.count -ge 1){
+                                    $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets"     
+                                }
+                                #$Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" 
                             }
                             elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
                                 $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
@@ -1063,7 +1069,9 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Hostname";E={$_.hostname}},
                                     @{N="Volume Group name";E={$_.name}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
                                     @{N="Assignment Type";E={$_.slaAssignment}}
+                                    if ($VolumeGroups.Count -ge 1){
                                 $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups"
+                            }
                             }
                             elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
                                 $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | ForEach { Get-RubrikVolumeGroup -id $_.id | Select -Property @{N="Hostname";E={$_.hostname}},
@@ -1086,7 +1094,10 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
                                     @{N="Volume Size";E={$_.volumeSize}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
                                     @{N="Assignment Type";E={$_.slaAssignment}}
+                                    #-=MWP=- need to populate everywhere.
+                                if ($ManagedVolumes.Count -ge 1) {
                                 $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes"
+                                }
                             }
                             elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
                                 $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
