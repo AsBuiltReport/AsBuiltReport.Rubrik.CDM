@@ -28,9 +28,9 @@ Installing the As Built Report core module takes care of installing all of subsi
 
 Open a Windows PowerShell terminal window and install each of the required modules as follows;
 ```powershell
-install-module AsBuiltReport
+Install-Module AsBuiltReport
 ```
-The installation of the AsBuiltReport module also handles the installation of the associated plugins, including Rubrik.
+The installation of the AsBuiltReport module also handles the installation of the associated reports, including Rubrik CDM.
 
 ### Required Priveleges
 
@@ -88,8 +88,7 @@ There are 4 levels (0/1/3/5) of detail granularity for each section as follows;
 
 ### Healthchecks
 
-The `Healthcheck` section of the Rubrik CDM As Built Report is not utilized.
-
+The `Healthcheck` section of the Rubrik CDM As Built Report is not currently utilized.
 
 ## Examples 
 - Generate HTML & Word reports with Timestamp
@@ -116,5 +115,5 @@ New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domai
 ```
 
 ## Known Issues
-- InfoLevel 3 and above causes User Not Found messages to be displayed on the console. 
-  - While not a show stopper, when running the Rubrik CDM As Built Report with Cluster Info Level of 3 or higher User not found messages are shown on the console. This is the result of Rubrik tyring to query deeper information about users who no longer have an LDAP Account wtihin ou system. Reports continue to generate regardless of the error shown.
+- InfoLevel 3 and above causes "User Not Found" messages to be displayed on the console. 
+  - While not a show stopper, when running the Rubrik CDM As Built Report with Cluster Info Level of 3 or higher User not found messages are shown on the console. This is the result of Rubrik tyring to query deeper information about users who no longer have an LDAP Account within the system. Reports continue to generate regardless of the error shown.
