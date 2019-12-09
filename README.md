@@ -8,29 +8,35 @@ The following PowerShell modules are required for generating a Rubrik As Built r
 
 Each of these modules can be easily downloaded and installed via the PowerShell Gallery 
 
-- [Rubrik CDM Powershell SDK](https://www.powershellgallery.com/packages/Rubrik/) *Note:* The Rubrik As Built Report Module currently relies on the `dev` branch of the Rubrik PowerShell SDK. Follow the instructions below to ensure the `dev` branch the active installation.
+- [Rubrik CDM Powershell SDK](https://www.powershellgallery.com/packages/Rubrik/) *Note:* The Rubrik As Built Report Module currently relies on the `devel` branch of the Rubrik PowerShell SDK. Follow the instructions below to ensure the `devel` branch is the active installation.
 - [AsBuiltReport Module](https://www.powershellgallery.com/packages/AsBuiltReport/)
 
 ### Module Installation
 
 ### Installing the Rubrik CDM PowerShell SDK dev branch
 
-The `dev` branch within the Rubrik CDM PowerShell SDK contains the cmdlets, functions, and code needed in order to successfully generate a Rubrik As Built Report. This is why it is vital that `dev` is the active Rubrik module on the system generating the report. To install the `dev` branch follow the steps below:
+The `devel` branch within the Rubrik CDM PowerShell SDK contains the cmdlets, functions, and code needed in order to successfully generate a Rubrik As Built Report. This is why it is vital that `devel` is the active Rubrik module on the system generating the report. To install the `devel` branch follow the steps below:
 
-1. Download the [devel](https://github.com/rubrikinc/PowerShell-Module) to your workstation.
+1. Download the [devel](https://github.com/rubrikinc/rubrik-sdk-for-powershell/tree/devel) to your workstation.
 1. Open a Powershell console with the _Run as Administrator_ option.
 1. Run `Set-ExecutionPolicy` using the parameter _RemoteSigned_ or _Bypass_.
 1. Run the `Install-Rubrik.ps1` script in the root of this repository and follow the prompts to install, upgrade, or delete your Rubrik Module contents.
 
 ### Installing the AsBuiltReport Module
 
-Installing the As Built Report core module takes care of installing all of subsidary plugins including the Rubrik CDM core plugin.
+Installing the As Built Report core module with the below instructions takes care of installing all of subsidary reports, including the Rubrik CDM core report.
 
 Open a Windows PowerShell terminal window and install each of the required modules as follows;
 ```powershell
 Install-Module AsBuiltReport
 ```
-The installation of the AsBuiltReport module also handles the installation of the associated reports, including Rubrik CDM.
+
+To install individual report modules the following can be utilized:
+```powershell
+Find-Module -Name AsBuiltReport.* -Repository PSGallery
+Install-Module -Name AsBuiltReport.Vendor.Product
+e.g. Install-Module -Name AsBuiltReport.Rubrik.CDM
+```
 
 ### Required Priveleges
 
