@@ -117,7 +117,12 @@ New-AsBuiltReport -Target 'cluster1.domain.local','cluster2.domain.org' -Usernam
 - Generate HTML & Word reports, attach and send reports via e-mail
 Generate a Rubrik CDM As Built Report for the cluster named 'cluster1.domain.local' using specified credentials. Export report to HTML & DOC formats. Use default report style. Reports are saved to the user profile folder by default. Attach and send reports via e-mail.
 ```powershell
-New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'domin.local' -Report Vmware.vSphere -Format Html,Word -OutputPath C:\Users\Tim\Documents -SendEmail
+New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'domain.local' -Report Vmware.vSphere -Format Html,Word -OutputPath C:\Users\Tim\Documents -SendEmail
+```
+
+- Generate Word reports using the generated JSON config
+```powershell
+New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputPath <path_to_generated_report> -ReportConfigPath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigPath <path_to_as_built_config>
 ```
 
 ## Known Issues
