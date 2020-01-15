@@ -86,8 +86,10 @@ There are 4 levels (0/1/3/5) of detail granularity for each section as follows;
 | Setting | InfoLevel | Description |
 | ------- | ---- | ----------- |
 | 0 | Disabled | does not collect or display any information
-| 1 | Summary** | provides summarised information for a collection of objects
+| 1 | Summary** | provides summarized information for a collection of objects
+| 2 | Informative | reserved for future use
 | 3 | Detailed | provides detailed information for individual objects
+| 4 | Advanced Detailed | reserved for future use
 | 5 | Comprehensive | provides comprehensive information for individual objects, such as advanced configuration settings
 
 ***Note*** While you can specify InfoLevels of 2 and 4, they will simply default to the closest defined level below them. IE 2 becomes 1 and 4 becomes 3. 
