@@ -7,7 +7,7 @@ Your input is welcome! Contributing to this project is as easy as:
 - Proposing new features
 - Creating a new report
 
-When contributing to this repository, please first discuss the change you wish to make via [issue](https://github.com/AsBuiltReport/AsBuiltReport.VMware.vSphere/issues), or [direct message](https://powershell.slack.com/messages/D3MU9DP8S) in the [PowerShell Slack](https://powershell.slack.com) channel before making a change.
+When contributing to this repository, please first discuss the change you wish to make via [issue](https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/issues), or [direct message](https://powershell.slack.com/messages/D3MU9DP8S) in the [PowerShell Slack](https://powershell.slack.com) channel before making a change.
 
 ## Develop with Github
 This project uses Github to host code, to track issues and feature requests, as well as accept pull requests.
@@ -25,9 +25,9 @@ A good quality pull request will have the following characteristics:
 - The code contained within will meet the best practices set by the team wherever possible.
 
 ### Submitting pull requests
-1. Fork this repository (AsBuiltReport.VMware.vSphere), or if you are developing a report, fork the specific report repository. The example below uses the main AsBuiltReport.VMware.vSphere repository in the command examples.
-2. Add `https://github.com/AsBuiltReport/AsBuiltReport.VMware.vSphere.git` as a remote named `upstream`.
-    - `git remote add upstream https://github.com/AsBuiltReport/AsBuiltReport.VMware.vSphere.git`
+1. Fork this repository (AsBuiltReport.Rubrik.CDM), or if you are developing a report, fork the specific report repository. The example below uses the main AsBuiltReport.Rubrik.CDM repository in the command examples.
+2. Add `https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM.git` as a remote named `upstream`.
+    - `git remote add upstream https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM.git`
 3. Create your feature branch from `dev`.
 4. Work on your feature.
     - Update `CHANGELOG.md` in the repository you have worked in with add / remove / change information
@@ -48,7 +48,7 @@ Pull requests will be reviewed as soon as possible.
 In short, when you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
 
 ## Report Issues and Bugs
-[GitHub issues](https://github.com/AsBuiltReport/AsBuiltReport.VMware.vSphere/issues) is used to track issues and bugs. Report a bug by opening a new issue, it's that easy!
+[GitHub issues](https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/issues) is used to track issues and bugs. Report a bug by opening a new issue, it's that easy!
 
 ## Submit bug reports with detail, background, and sample code
 
