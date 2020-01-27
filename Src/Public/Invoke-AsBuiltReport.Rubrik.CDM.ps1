@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     .DESCRIPTION
         Documents the configuration of the Rubrik CDM in Word/HTML/XML/Text formats using PScribo.
     .NOTES
-        Version:        1.0.0
+        Version:        0.0.2
         Author:         Mike Preston
         Twitter:        @mwpreston
         Github:         mwpreston
@@ -922,20 +922,30 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" 
                             }
                             elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="SCVMM Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},@{N="RBS Registered";E={$_.isAgentRegistered}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}} }
+                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } 
+                                if (($HyperVVMs | Measure-Object).count -gt 0) {
+                                    if ($null -ne $HyperVVMs[0].name) {
+                                        $HyperVVMs = $HyperVVMs | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                                            @{N="SCVMM Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},@{N="RBS Registered";E={$_.isAgentRegistered}},
+                                            @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}} }
+                                    }
+                                }
                                 $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" 
                             }
                             elseif ($InfoLevel.ProtectedObjects -ge 5) {                               
-                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="HyperV Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervServer::*' } ).name }},
-                                    @{N="HyperV Cluster";E={ ($_.infraPath | Where { $_.Id -like 'HypervCluster::*' } ).name }},
-                                    @{N="SCVMM Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},
-                                    @{N="RBS Registered";E={$_.isAgentRegistered}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                    @{N="Assignment Type";E={$_.slaAssignment}},@{N="Snapshot Count";E={ ( Get-RubrikSnapshot -id $_.id).count }},
-                                    @{N="Latest Backup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
-                                    @{N="Oldest Backup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }} }
+                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } 
+                                if (($HyperVVMs | Measure-Object).count -gt 0) {
+                                    if ($null -ne $HyperVVMs[0].name) {
+                                        $HyperVVMs = $HyperVVMs | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                                            @{N="HyperV Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervServer::*' } ).name }},
+                                            @{N="HyperV Cluster";E={ ($_.infraPath | Where { $_.Id -like 'HypervCluster::*' } ).name }},
+                                            @{N="SCVMM Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},
+                                            @{N="RBS Registered";E={$_.isAgentRegistered}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                            @{N="Assignment Type";E={$_.slaAssignment}},@{N="Snapshot Count";E={ ( Get-RubrikSnapshot -id $_.id).count }},
+                                            @{N="Latest Backup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
+                                            @{N="Oldest Backup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }} }
+                                    }
+                                }
                                 $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" -List -ColumnWidths 30,70
                             }
                         }

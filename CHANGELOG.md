@@ -1,6 +1,13 @@
 # Rubrik CDM As Built Report Changelog
 
-## 2019-12-09
+## [0.0.2] 2020-01-16
+
+### Modified
+
+- replaced a number of incorrect references to point to the Rubrik CDM repository
+- modified all colors to fall in line with Rubrik branding
+
+## [0.0.1] 2019-12-09
 
 ### Added
 
