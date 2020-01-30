@@ -13,7 +13,7 @@ Each of these modules can be easily downloaded and installed via the PowerShell 
 
 ### Module Installation
 
-### Installing the Rubrik CDM PowerShell SDK dev branch
+### Installing the Rubrik CDM PowerShell SDK devel branch
 
 The `devel` branch within the Rubrik CDM PowerShell SDK contains the cmdlets, functions, and code needed in order to successfully generate a Rubrik As Built Report. This is why it is vital that `devel` is the active Rubrik module on the system generating the report. To install the `devel` branch follow the steps below:
 
