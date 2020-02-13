@@ -341,6 +341,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Run As";E={$_.runAsAccount}},
                                     @{N="Connection Status";E={$_.status}}
+                                    Write-Host "done SC query"
                                 $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Operating System";E={$_.operatingSystem}},
@@ -398,12 +399,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="Is Relic";E={$_.isRelic}}
                             }
                             #Temporary data/hasmore/total checks till SDK is updated
-                            if (0 -eq $VMwarevCenter[0].total) {$SCVMMServers = $null}
-                            if (0 -eq $VMwareVCD[0].total) {$SCVMMServers = $null}
-                            if (0 -eq $NutanixClusters[0].total) {$SCVMMServers = $null}
-                            if (0 -eq $SCVMMServers[0].total) {$SCVMMServers = $null}
-                            if (0 -eq $WindowsHosts[0].total) {$SCVMMServers = $null}
-                            if (0 -eq $LinuxHosts[0].total) {$SCVMMServers = $null}
+                            if ($null -ne $VMwareVcenter -and 0 -eq $VMwarevCenter[0].total) {$VMwarevCenter = $null}
+                            if ($null -ne $VMwareVCD -and 0 -eq $VMwareVCD[0].total) {$VMwareVCD = $null}
+                            if ($null -ne $NutanixClusters -and 0 -eq $NutanixClusters[0].total) {$NutanixClusters = $null}
+                            if ($null -ne $SCVMMServers[0].Name -or '' -eq $SCVMMServers[0].name) {$SCVMMServers = $null}
+                            if ($null -ne $WindowsHosts -and 0 -eq $WindowsHosts[0].total) {$WindowsHosts = $null}
+                            if ($null -ne $LinuxHosts -and 0 -eq $LinuxHosts[0].total) {$LinuxHosts = $null}
 
                             if ((0 -ne $VMwarevCenter | Measure-Object).count ) {
                                 Section -Style Heading4 'VMware vCenter Servers' { 
