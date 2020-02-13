@@ -397,6 +397,14 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="VFD Enabled";E={$_.hostVfdEnabled}},
                                     @{N="Is Relic";E={$_.isRelic}}
                             }
+                            #Temporary data/hasmore/total checks till SDK is updated
+                            if (0 -eq $VMwarevCenter[0].total) {$SCVMMServers = $null}
+                            if (0 -eq $VMwareVCD[0].total) {$SCVMMServers = $null}
+                            if (0 -eq $NutanixClusters[0].total) {$SCVMMServers = $null}
+                            if (0 -eq $SCVMMServers[0].total) {$SCVMMServers = $null}
+                            if (0 -eq $WindowsHosts[0].total) {$SCVMMServers = $null}
+                            if (0 -eq $LinuxHosts[0].total) {$SCVMMServers = $null}
+
                             if ((0 -ne $VMwarevCenter | Measure-Object).count ) {
                                 Section -Style Heading4 'VMware vCenter Servers' { 
                                     Paragraph "The following table outlines the VMware vCenter Servers which have been added to the Rubrik cluster"
