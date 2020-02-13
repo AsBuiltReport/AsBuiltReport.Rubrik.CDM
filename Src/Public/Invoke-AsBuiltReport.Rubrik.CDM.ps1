@@ -399,7 +399,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             }
 
 
-                            if ((0 -ne $VMwarevCenter | Measure-Object).count ) {
+                            if (0 -ne ($VMwarevCenter | Measure-Object).count ) {
                                 Section -Style Heading4 'VMware vCenter Servers' { 
                                     Paragraph "The following table outlines the VMware vCenter Servers which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) { $VMwarevCenter | Table -Name 'VMware vCenter Server'}
