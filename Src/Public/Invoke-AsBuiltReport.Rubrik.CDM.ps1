@@ -1164,10 +1164,10 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         if (0 -ne ($VolumeGroups | Measure-Object).count) {
                             Section -Style Heading3 "Volume Groups" {
                                 if ($InfoLevel.ProtectedObjects -ge 5) {
-                                    $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups"
+                                    $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" -List -ColumnWidths 30,70
                                 }
                                 else {
-                                    $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" -List -ColumnWidths 30,70
+                                    $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" 
                                 }
                             }
                         }
