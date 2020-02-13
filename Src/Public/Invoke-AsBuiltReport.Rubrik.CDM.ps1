@@ -434,7 +434,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             }
                             if (0 -ne ($LinuxHosts | Measure-Object).count ) {
                                 Section -Style Heading4 'Linux Hosts' { 
-                                    Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
+                                    Paragraph "The following table outlines the Linux Hosts which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) { $LinuxHosts | Table -Name 'Linux Hosts' } 
                                     else { $LinuxHosts | Table -Name 'Linux Hosts' -ColumnWidths 30,70 -List }
                                 }
