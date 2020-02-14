@@ -14,7 +14,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     .LINK
         https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM
     #>
-
     param (
         [String[]] $Target,
         [PSCredential] $Credential,
@@ -41,7 +40,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     #---------------------------------------------------------------------------------------------#
     #                                         SCRIPT BODY                                         #
     #---------------------------------------------------------------------------------------------#
-
     foreach ($brik in $Target) { 
         try {
             $RubrikCluster = Connect-Rubrik -Server $brik -Credential $Credential -ErrorAction Stop
@@ -141,10 +139,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 }
                                 [pscustomobject]$DNSDetails | Table -Name 'DNS Configuration' -List
                             }
-
-                            
-
-                            
                             if ($InfoLevel.Cluster -lt 3) {
                                 $NTPDetails = Get-RubrikNTPServer | Select -Property @{Name="Server";Expression={$_.server}}
                                 $NetworkThrottleDetails = Get-RubrikNetworkThrottle | Select -Property @{Name="Resource ID";Expression={$_.resourceId}}, 
@@ -315,7 +309,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 }
                             }
                         } # End Heading 3 - Security Settings
-
                         Section -Style Heading3 'Backup Settings' {
                             Paragraph "The following contains backup related settings configured on the cluster"
                             
@@ -405,44 +398,49 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="Is Relic";E={$_.isRelic}}
                             }
 
-                            Section -Style Heading4 'VMware vCenter Servers' { 
-                                Paragraph "The following table outlines the VMware vCenter Servers which have been added to the Rubrik cluster"
-                                if ($InfoLevel.Cluster -lt 3) { $VMwarevCenter | Table -Name 'VMware vCenter Server'}
-                                else {$VMwarevCenter | Table -Name 'VMware vCenter Server' -ColumnWidths 30,70 -List}
+
+                            if (0 -ne ($VMwarevCenter | Measure-Object).count ) {
+                                Section -Style Heading4 'VMware vCenter Servers' { 
+                                    Paragraph "The following table outlines the VMware vCenter Servers which have been added to the Rubrik cluster"
+                                    if ($InfoLevel.Cluster -lt 3) { $VMwarevCenter | Table -Name 'VMware vCenter Server'}
+                                    else {$VMwarevCenter | Table -Name 'VMware vCenter Server' -ColumnWidths 30,70 -List}
+                                } 
+                            }
+                            if (0 -ne ($VMwareVCD | Measure-Object).count ) {
+                                Section -Style Heading4 'VMware vCloud Director Clusters' { 
+                                    Paragraph "The following table outlines the VMware vCloud Director clusters which have been added to the Rubrik cluster"
+                                    if ($InfoLevel.Cluster -lt 3) { $VMwareVCD | Table -Name 'VMware vCloud Director Clusters' }
+                                    else {$VMwareVCD | Table -Name 'VMware vCloud Director Clusters' -ColumnWidths 30,70 -List}
+                                }
                             } 
-                            Section -Style Heading4 'VMware vCloud Director Clusters' { 
-                                Paragraph "The following table outlines the VMware vCloud Director clusters which have been added to the Rubrik cluster"
-                                if ($InfoLevel.Cluster -lt 3) { $VMwareVCD | Table -Name 'VMware vCloud Director Clusters' }
-                                else {$VMwareVCD | Table -Name 'VMware vCloud Director Clusters' -ColumnWidths 30,70 -List}
-                            } 
-                            #-=MWP=- added same Measure-Object check to all others.
-                            Section -Style Heading4 'Hyper-V SCVMM Servers' { 
-                                if (($SCVMMServers | Measure-Object).count -ge 1) {
+                            if (0 -ne ($SCVMMServers | Measure-Object).count ) {
+                                Section -Style Heading4 'Hyper-V SCVMM Servers' { 
                                     Paragraph "The following table outlines the SCVMM Servers which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) { $SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' }
                                     else {$SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' -ColumnWidths 30,70 -List }
                                 }
                             } 
-                            Section -Style Heading4 'Nutanix Clusters' { 
-                                Paragraph "The following table outlines the Nutanix clusters which have been added to the Rubrik cluster"
-                                if ($InfoLevel.Cluster -lt 3) {$NutanixClusters | Table -Name 'Nutanix Clusters' }
-                                else {$NutanixClusters | Table -Name 'Nutanix Clusters' -ColumnWidths 30,70 -List}
+                            if (0 -ne ($NutanixClusters | Measure-Object).count ) {
+                                Section -Style Heading4 'Nutanix Clusters' { 
+                                    Paragraph "The following table outlines the Nutanix clusters which have been added to the Rubrik cluster"
+                                    if ($InfoLevel.Cluster -lt 3) {$NutanixClusters | Table -Name 'Nutanix Clusters' }
+                                    else {$NutanixClusters | Table -Name 'Nutanix Clusters' -ColumnWidths 30,70 -List}
+                                }
                             }
-                            Section -Style Heading4 'Windows Hosts' { 
-                                Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
-                                if ($InfoLevel.Cluster -lt 3) { $WindowsHosts | Table -Name 'Windows Hosts' } 
-                                else { $WindowsHosts | Table -Name 'Windows Hosts' -ColumnWidths 30,70 -List }
+                            if (0 -ne ($WindowsHosts | Measure-Object).count ) {
+                                Section -Style Heading4 'Windows Hosts' { 
+                                    Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
+                                    if ($InfoLevel.Cluster -lt 3) { $WindowsHosts | Table -Name 'Windows Hosts' } 
+                                    else { $WindowsHosts | Table -Name 'Windows Hosts' -ColumnWidths 30,70 -List }
+                                }
                             }
-                            Section -Style Heading4 'Linux Hosts' { 
-                                Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
-                                if ($InfoLevel.Cluster -lt 3) { $LinuxHosts | Table -Name 'Linux Hosts' } 
-                                else { $LinuxHosts | Table -Name 'Linux Hosts' -ColumnWidths 30,70 -List }
+                            if (0 -ne ($LinuxHosts | Measure-Object).count ) {
+                                Section -Style Heading4 'Linux Hosts' { 
+                                    Paragraph "The following table outlines the Linux Hosts which have been added to the Rubrik cluster"
+                                    if ($InfoLevel.Cluster -lt 3) { $LinuxHosts | Table -Name 'Linux Hosts' } 
+                                    else { $LinuxHosts | Table -Name 'Linux Hosts' -ColumnWidths 30,70 -List }
+                                }
                             }
-                            
-                            #-=MWP=- Could add the following to this section in a later version 
-                            # - Storage Arrays
-                            # - Cloud Sources (AWS Protection)
-
                         } # End Heading 3 Backup Sources
                         Section -Style Heading3 'Replication Configuration' {
                             Paragraph "The following contains information  around the replication configuration on the cluster"
@@ -464,6 +462,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $ReplicationTargets | Table -Name 'Replication Sources'
                             }
                         } # End Heading 3 Replication Configuration
+
                         Section -Style Heading3 'Archive Targets' {
                             Paragraph "The following contains information around configured archive targets on the cluster"
                             # Gather Information
@@ -513,17 +512,16 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 Section -Style Heading4 'S3 Archive Targets' {
                                     if ( ($ArchiveTargets | Where-Object {$_.locationType -eq 'S3'}  | Measure-Object ).count -gt 0) {
                                         $S3Targets = Get-RubrikArchive -ArchiveType S3 -DetailedObject | Select @{Name="Name"; Expression={$_.definition.name}},
-                                                                    @{Name="Bucket";Expression={$_.definition.bucket}},   
-                                                                    @{Name="Region";Expression={$_.definition.defaultRegion}},
-                                                                    @{Name="Storage Class";Expression={$_.definition.storageClass}},
-                                                                    @{Name="Consolidation Enabled";Expression={$_.definition.isConsolidationEnabled}},
-                                                                    @{Name="Encryption Type";Expression={$_.definition.encryptionType}},
-                                                                    @{Name="Access Key";Expression={$_.definition.accessKey}},
-                                                                    @{Name="Compute Enabled";Expression={$_.definition.isComputeEnabled}},
-                                                                    @{Name="Security Group";Expression={$_.definition.defaultComputeNetworkConfig.securityGroupId}},
-                                                                    @{Name="VPC";Expression={$_.definition.defaultComputeNetworkConfig.vNetId}},
-                                                                    @{Name="Subnet";Expression={$_.definition.defaultComputeNetworkConfig.subnetId}}
-                                        
+                                            @{Name="Bucket";Expression={$_.definition.bucket}},   
+                                            @{Name="Region";Expression={$_.definition.defaultRegion}},
+                                            @{Name="Storage Class";Expression={$_.definition.storageClass}},
+                                            @{Name="Consolidation Enabled";Expression={$_.definition.isConsolidationEnabled}},
+                                            @{Name="Encryption Type";Expression={$_.definition.encryptionType}},
+                                            @{Name="Access Key";Expression={$_.definition.accessKey}},
+                                            @{Name="Compute Enabled";Expression={$_.definition.isComputeEnabled}},
+                                            @{Name="Security Group";Expression={$_.definition.defaultComputeNetworkConfig.securityGroupId}},
+                                            @{Name="VPC";Expression={$_.definition.defaultComputeNetworkConfig.vNetId}},
+                                            @{Name="Subnet";Expression={$_.definition.defaultComputeNetworkConfig.subnetId}}
                                         $S3Targets | Table -Name 'S3 Archives' -List -ColumnWidths 30,70
                                     }
                                     else { Paragraph "There are currently no S3 targets configured on the cluster."}
@@ -887,22 +885,115 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                 if ($InfoLevel.ProtectedObjects -ge 1) {
                     Section -Style Heading2 "Protected Objects" {
                         Paragraph("The following shows details around all protected objects configured within the Rubrik cluster")
-
-                        Section -Style Heading3 "VMware Virtual Machines" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
-                                $VMwareVMs | Sort-Object -Property Name | Table -Name "Protected VMware VMs"
+                        if ($InfoLevel.ProtectedObjects -in (1,2)) {
+                            $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
+                            $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
+                            $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
+                            $MSSQLDatabases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                @{N="Recovery Model";E={$_.recoveryModel}},@{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                @{N="Assignment Type";E={$_.slaAssignment}}
+                            $OracleDatabases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                @{N="SID";E={$_.sid}},  @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                @{N="Assignment Type";E={$_.slaAssignment}}
+                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}}, 
+                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
+                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                @{N="Fileset Name";E={$_.name}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
+                            $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                @{N="Volume Group name";E={$_.name}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                @{N="Assignment Type";E={$_.slaAssignment}}
+                            $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                @{N="Volume Size";E={$_.volumeSize}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                @{N="Assignment Type";E={$_.slaAssignment}}
+                        }
+                        elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
+                            #first level if check on total is temporary 
+                            #this must be in place for sending additional GETs or Foreach
+                            #as we may bet back null results (but have data/hasmore/total stanza hidden)
+                            #from the SDK. - This is temporary until code is properly handled within the 
+                            #Rubrik PowerShell SDK
+                            #Applies to HyperV,Nutanix, MSSQL, Oracle, VolumeGroups below
+                            $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' | Select -Property @{N="Name";E={$_.name}},
+                                @{N="IP Address";E={$_.ipAddress}},@{N="vCenterName";E={ ($_.infraPath | Where { $_.managedId -like 'vCenter::*' } ).name }},
+                                @{N="RBSInstalled";E={$_.agentStatus.agentStatus}},@{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                @{N="Assignment Type";E={$_.slaAssignment}} | where {$_.effectiveSlaDomainName -ne 'Unprotected' }
+                            $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local
+                            if (0 -ne $HypervVMs[0].total) {
+                                $HyperVVMs = $HyperVVMs | where {$_.effectiveSlaDomainName -ne 'Unprotected' }  | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                                    @{N="SCVMM Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},@{N="RBS Registered";E={$_.isAgentRegistered}},
+                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}} }
                             }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="IP Address";E={$_.ipAddress}},@{N="vCenterName";E={ ($_.infraPath | Where { $_.managedId -like 'vCenter::*' } ).name }},
-                                    @{N="RBSInstalled";E={$_.agentStatus.agentStatus}},@{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                    @{N="Assignment Type";E={$_.slaAssignment}} | where {$_.effectiveSlaDomainName -ne 'Unprotected' }
-                                $VMwareVMs | Sort-Object -Property Name | Table -Name "Protected VMware VMs" 
+                            else {
+                                $HyperVVMs = $null
                             }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
-                                $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | foreach {Get-RubrikVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                            $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local
+                            if (0 -ne $NutanixVMs[0].total) {
+                                $NutanixVMs = $NutanixVMs | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikNutanixVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                                    @{N="Cluster Name";E={$_.nutanixClusterName}},@{N="RBS Registered";E={$_.isAgentRegistered}},
+                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}} }
+                            }
+                            else {
+                                $NutanixVMs = $null
+                            }
+                            $MSSQLDatabases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local 
+                            if (0 -ne $MSSQLDatabases[0].total) {
+                                $MSSQLDatabases = $MSSQLDatabases | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikDatabase -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                                    @{N="Instance";E={if ($null -eq $_.instanceName) {"N/A"} else {$_.instanceName}  }},@{N="LocationName";E={$_.rootProperties.rootName }},
+                                    @{N="Recovery Model";E={if ($null -eq $_.recoveryModel) {"N/A"} else {$_.recoveryModel}  }}, @{N="Log Backup Frequency (seconds)";E={$_.logBackupFrequencyInSeconds}},
+                                    @{N="Log Retention (hours)";E={$_.logBackupRetentionHours}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                    @{N="Assignment Type";E={$_.slaAssignment}}}
+                            }
+                            else {
+                                $MSSQLDatabases = $null
+                            }
+                            $OracleDatabases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local
+                            if (0 -ne $OracleDatabases[0].total) {
+                                $OracleDatabases = $OracleDatabases | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikOracleDb -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                                    @{N="SID";E={$_.sid}}, @{N="# Tablespaces";E={$_.numTablespaces}},
+                                    @{N="Oracle Host";E={$_.standaloneHostName}}, @{N="Log Enabled";E={$_.isArchiveLogModeEnabled}},
+                                    @{N="Log Backup Frequency (minutes)";E={$_.logBackupFrequencyInMinutes}},@{N="Log Retention (Hours)";E={$_.logRetentionHours}},
+                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}} }
+                            }
+                            else {
+                                $OracleDatabases = $null
+                            }
+                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}},
+                                @{N="Includes";E={$_.includes | Out-String }},@{N="Excludes";E={$_.excludes | Out-String}},
+                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
+                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                @{N="Operating System";E={$_.operatingSystemType}} ,@{N="Fileset Name";E={$_.name}},
+                                @{N="Includes";E={$_.includes | Out-String }},@{N="Excludes";E={$_.excludes | Out-String}},
+                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
+                            $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local 
+                            if (0 -ne $VolumeGroups[0].total) {
+                                $VolumeGroups = $VolumeGroups | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | ForEach { Get-RubrikVolumeGroup -id $_.id | Select -Property @{N="Hostname";E={$_.hostname}},
+                                    @{N="Volume Group name";E={$_.name}},@{N="Includes";E={$_.includes | Out-String }},
+                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}}
+                            }
+                            else {
+                                $VolumeGroups = $null
+                            }
+                            $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                @{N="Volume Size";E={$_.volumeSize}}, @{N="Used";E={$_.usedSize}},
+                                @{N="Is Writable";E={$_.isWritable}}, @{N="State";E={$_.state}},
+                                @{N="# Channels";E={$_.numChannels}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                @{N="Assignment Type";E={$_.slaAssignment}}
+                            }
+                        elseif ($InfoLevel.ProtectedObjects -ge 5) {
+                            #first level if check on total is temporary 
+                            #this must be in place for sending additional GETs or Foreach
+                            #as we may bet back null results (but have data/hasmore/total stanza hidden)
+                            #from the SDK. - This is temporary until code is properly handled within the 
+                            #Rubrik PowerShell SDK
+                            #Applies to VMware VMs, HyperV, Nutanix, MSSQL, Oracle, VolumeGroups below
+                            $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' 
+                            if (0 -ne $VMwareVMs[0].total) {
+                                $VMwareVMs = $VMwareVMs | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | foreach {Get-RubrikVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
                                     @{N="IP Address";E={$_.ipAddress}},@{N="Guest OS";E={$_.guestOsType}},
                                     @{N="ESXiHost";E={ ($_.infraPath | Where { $_.managedId -like 'VMwareHost::*' } ).name }},
                                     @{N="ComputeCluster";E={ ($_.infraPath | Where { $_.managedId -like 'ComputeCluster::*' } ).name }}, 
@@ -912,222 +1003,186 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}, @{N="Snapshot Count";E={$_.snapshotCount}},
                                     @{N="Oldest Backup";E={ ($_.snapshots | sort-object -Property Date | Select -First 1).date }},
                                     @{N="Latest Backup";E={ ($_.snapshots | sort-object -Property Date | Select -Last 1).date }}  }
-                                $VMwareVMs | Sort-Object -Property Name | Table -Name "Protected VMware VMs" -List -ColumnWidths 30,70
-                            }
-                        }
-                        Section -Style Heading3 "Hyper-V Virtual Machines" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
-                                $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" 
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } 
-                                if (($HyperVVMs | Measure-Object).count -gt 0) {
-                                    if ($null -ne $HyperVVMs[0].name) {
-                                        $HyperVVMs = $HyperVVMs | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
-                                            @{N="SCVMM Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},@{N="RBS Registered";E={$_.isAgentRegistered}},
-                                            @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}} }
-                                    }
                                 }
-                                $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" 
+                            else {
+                                $VMwareVMs = $null
                             }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {                               
-                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } 
-                                if (($HyperVVMs | Measure-Object).count -gt 0) {
-                                    if ($null -ne $HyperVVMs[0].name) {
-                                        $HyperVVMs = $HyperVVMs | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
-                                            @{N="HyperV Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervServer::*' } ).name }},
-                                            @{N="HyperV Cluster";E={ ($_.infraPath | Where { $_.Id -like 'HypervCluster::*' } ).name }},
-                                            @{N="SCVMM Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},
-                                            @{N="RBS Registered";E={$_.isAgentRegistered}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                            @{N="Assignment Type";E={$_.slaAssignment}},@{N="Snapshot Count";E={ ( Get-RubrikSnapshot -id $_.id).count }},
-                                            @{N="Latest Backup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
-                                            @{N="Oldest Backup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }} }
-                                    }
-                                }
-                                $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" -List -ColumnWidths 30,70
+                            $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local
+                            if (0 -ne $HypervVMs[0].total) {
+                                $HyperVVMs = $HyperVVMs | where {$_.effectiveSlaDomainName -ne 'Unprotected' }  | ForEach { Get-RubrikHyperVVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                                    @{N="HyperV Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervServer::*' } ).name }},
+                                    @{N="HyperV Cluster";E={ ($_.infraPath | Where { $_.Id -like 'HypervCluster::*' } ).name }},
+                                    @{N="SCVMM Server";E={ ($_.infraPath | Where { $_.Id -like 'HypervScvmm::*' } ).name }},
+                                    @{N="RBS Registered";E={$_.isAgentRegistered}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
+                                    @{N="Assignment Type";E={$_.slaAssignment}},@{N="Snapshot Count";E={ ( Get-RubrikSnapshot -id $_.id).count }},
+                                    @{N="Latest Backup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
+                                    @{N="Oldest Backup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }} }
                             }
-                        }
-                        Section -Style Heading3 "Nutanix Virtual Machines" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
-                                $NutanixVMs | Sort-Object -Property Name | Table -Name "Protected Nutanix VMs" 
+                            else {
+                                $HyperVVMs = $null
                             }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikNutanixVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                            $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local 
+                            if (0 -ne $NutanixVMs[0].total) {
+                                $NutanixVMs = $NutanixVMs | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikNutanixVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
                                     @{N="Cluster Name";E={$_.nutanixClusterName}},@{N="RBS Registered";E={$_.isAgentRegistered}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}} }
-                                $NutanixVMs | Sort-Object -Property Name | Table -Name "Protected Nutanix VMs" 
+                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}},
+                                    @{N="Snapshot Count";E={ ( Get-RubrikSnapshot -id $_.id).count }},
+                                    @{N="Latest Backup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
+                                    @{N="Oldest Backup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }} }
                             }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
-                                $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach { Get-RubrikNutanixVM -id $_.id | Select -Property @{N="Name";E={$_.name}},
-                                @{N="Cluster Name";E={$_.nutanixClusterName}},@{N="RBS Registered";E={$_.isAgentRegistered}},
-                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}},
-                                @{N="Snapshot Count";E={ ( Get-RubrikSnapshot -id $_.id).count }},
-                                @{N="Latest Backup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
-                                @{N="Oldest Backup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }} }
-                                $NutanixVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" -List -ColumnWidths 30,70
+                            else {
+                                $NutanixVMs = $null
                             }
-                        }
-                        Section -Style Heading3 "MSSQL Databases" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $Databases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="Recovery Model";E={$_.recoveryModel}},@{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                    @{N="Assignment Type";E={$_.slaAssignment}}
-                                $Databases | Sort-Object -Property Name | Table -Name "Protected MSSQL Databases" 
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $Databases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikDatabase -id $_.id | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="Instance";E={if ($null -eq $_.instanceName) {"N/A"} else {$_.instanceName}  }},@{N="LocationName";E={$_.rootProperties.rootName }},
+                            $MSSQLDatabases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local 
+                            if (0 -ne $MSSQLDatabases[0].total) {
+                                $MSSQLDatabases = $MSSQLDatabases | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikDatabase -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                                    @{N="Instance";E={if ($null -eq $_.instanceName) {"N/A"} else {$_.instanceName}  }},@{N="Location Name";E={$_.rootProperties.rootName }},
                                     @{N="Recovery Model";E={if ($null -eq $_.recoveryModel) {"N/A"} else {$_.recoveryModel}  }}, @{N="Log Backup Frequency (seconds)";E={$_.logBackupFrequencyInSeconds}},
-                                    @{N="Log Retention (hours)";E={$_.logBackupRetentionHours}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                    @{N="Assignment Type";E={$_.slaAssignment}}}
-                                $Databases | Sort-Object -Property Name | Table -Name "Protected MSSQL Databases" 
+                                    @{N="Log Retention (hours)";E={$_.logBackupRetentionHours}}, @{N="Secondary Log Shipping";E={$_.isLogShippingSecondary}},
+                                    @{N="Is in Availability Group";E={$_.isInAvailabilityGroup}},@{N="Copy Only";E={$_.copyOnly}},
+                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}}, @{N="Assignment Type";E={$_.slaAssignment}},
+                                    @{N="Snapshot Count";E={$_.snapshotCount}},@{N="Oldest Backup";E={$_.oldestRecoveryPoint}},
+                                    @{N="Latest Backup";E={$_.latestRecoveryPoint}} }
                             }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
-                                $Databases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikDatabase -id $_.id | Select -Property @{N="Name";E={$_.name}},
-                                @{N="Instance";E={if ($null -eq $_.instanceName) {"N/A"} else {$_.instanceName}  }},@{N="Location Name";E={$_.rootProperties.rootName }},
-                                @{N="Recovery Model";E={if ($null -eq $_.recoveryModel) {"N/A"} else {$_.recoveryModel}  }}, @{N="Log Backup Frequency (seconds)";E={$_.logBackupFrequencyInSeconds}},
-                                @{N="Log Retention (hours)";E={$_.logBackupRetentionHours}}, @{N="Secondary Log Shipping";E={$_.isLogShippingSecondary}},
-                                @{N="Is in Availability Group";E={$_.isInAvailabilityGroup}},@{N="Copy Only";E={$_.copyOnly}},
-                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}}, @{N="Assignment Type";E={$_.slaAssignment}},
-                                @{N="Snapshot Count";E={$_.snapshotCount}},@{N="Oldest Backup";E={$_.oldestRecoveryPoint}},
-                                @{N="Latest Backup";E={$_.latestRecoveryPoint}} }
-                                $Databases | Sort-Object -Property Name | Table -Name "Protected MSSQL Databases" -List -ColumnWidths 30,70
+                            else {
+                                $MSSQLDatabases = $null
                             }
-                        }
-                        Section -Style Heading3 "Oracle Databases" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $Databases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="SID";E={$_.sid}},  @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                    @{N="Assignment Type";E={$_.slaAssignment}}
-                                $Databases | Sort-Object -Property Name | Table -Name "Protected Oracle Databases" 
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $Databases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikOracleDb -id $_.id | Select -Property @{N="Name";E={$_.name}},
+                            $OracleDatabases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local 
+                            if (0 -ne $OracleDatabases[0].total) {
+                                $OracleDatabases = $OracleDatabases | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikOracleDb -id $_.id | Select -Property @{N="Name";E={$_.name}},
                                     @{N="SID";E={$_.sid}}, @{N="# Tablespaces";E={$_.numTablespaces}},
                                     @{N="Oracle Host";E={$_.standaloneHostName}}, @{N="Log Enabled";E={$_.isArchiveLogModeEnabled}},
                                     @{N="Log Backup Frequency (minutes)";E={$_.logBackupFrequencyInMinutes}},@{N="Log Retention (Hours)";E={$_.logRetentionHours}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}} }
-                                $Databases | Sort-Object -Property Name | Table -Name "Protected Oracle Databases" 
+                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}},
+                                    @{N="Snapshot Count";E={$_.snapshotCount}},@{N="Oldest Backup";E={$_.oldestRecoveryPoint}},
+                                    @{N="Latest Backup";E={$_.latestRecoveryPoint}} }
                             }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
-                                $Databases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Foreach { Get-RubrikOracleDb -id $_.id | Select -Property @{N="Name";E={$_.name}},
-                                @{N="SID";E={$_.sid}}, @{N="# Tablespaces";E={$_.numTablespaces}},
-                                @{N="Oracle Host";E={$_.standaloneHostName}}, @{N="Log Enabled";E={$_.isArchiveLogModeEnabled}},
-                                @{N="Log Backup Frequency (minutes)";E={$_.logBackupFrequencyInMinutes}},@{N="Log Retention (Hours)";E={$_.logRetentionHours}},
-                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}},
-                                @{N="Snapshot Count";E={$_.snapshotCount}},@{N="Oldest Backup";E={$_.oldestRecoveryPoint}},
-                                @{N="Latest Backup";E={$_.latestRecoveryPoint}} }
-                                $Databases | Sort-Object -Property Name | Table -Name "Protected Oracle Databases" -List -ColumnWidths 30,70
+                            else {
+                                $OracleDatabases = $null
                             }
-                        }
-                        Section -Style Heading3 "Filesets" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
-                                    @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}}, 
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
-                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" 
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
-                                    @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}},
-                                    @{N="Includes";E={$_.includes | Out-String }},@{N="Excludes";E={$_.excludes | Out-String}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
-                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" 
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
-                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
-                                    @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}},
-                                    @{N="Includes";E={$_.includes | Out-String }},@{N="Excludes";E={$_.excludes | Out-String}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Snapshot Count";E={$_.snapshotCount}},
-                                    @{N="Oldest Backup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -First 1).date}},
-                                    @{N="Latest Backup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -Last 1).date}}
-                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -List -ColumnWidths 30,70
-                            }
-                        }
-                        Section -Style Heading3 "NAS Shares" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
-                                    @{N="Fileset Name";E={$_.name}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
-                                if ($Filesets.count -ge 1){
-                                    $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets"     
-                                }
-                                #$Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" 
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
-                                    @{N="Operating System";E={$_.operatingSystemType}} ,@{N="Fileset Name";E={$_.name}},
-                                    @{N="Includes";E={$_.includes | Out-String }},@{N="Excludes";E={$_.excludes | Out-String}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
-                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" 
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
-                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
-                                    @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}},
-                                    @{N="Includes";E={$_.includes | Out-String }},@{N="Excludes";E={$_.excludes | Out-String}},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Snapshot Count";E={$_.snapshotCount}},
-                                    @{N="Oldest Backup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -First 1).date}},
-                                    @{N="Latest Backup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -Last 1).date}}
-                                $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -List -ColumnWidths 30,70
-                            }
-                        }
-                        Section -Style Heading3 "Volume Groups" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Hostname";E={$_.hostname}},
-                                    @{N="Volume Group name";E={$_.name}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                    @{N="Assignment Type";E={$_.slaAssignment}}
-                                    if ($VolumeGroups.Count -ge 1){
-                                $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups"
-                            }
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | ForEach { Get-RubrikVolumeGroup -id $_.id | Select -Property @{N="Hostname";E={$_.hostname}},
-                                    @{N="Volume Group name";E={$_.name}},@{N="Includes";E={$_.includes | Out-String }},
-                                    @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}}
-                                $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" 
-                            }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
-                                $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | ForEach { Get-RubrikVolumeGroup -id $_.id | Select -Property @{N="Hostname";E={$_.hostname}},
+                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}},
+                                @{N="Includes";E={$_.includes | Out-String }},@{N="Excludes";E={$_.excludes | Out-String}},
+                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Snapshot Count";E={$_.snapshotCount}},
+                                @{N="Oldest Backup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -First 1).date}},
+                                @{N="Latest Backup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -Last 1).date}}
+                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}},
+                                @{N="Includes";E={$_.includes | Out-String }},@{N="Excludes";E={$_.excludes | Out-String}},
+                                @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Snapshot Count";E={$_.snapshotCount}},
+                                @{N="Oldest Backup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -First 1).date}},
+                                @{N="Latest Backup";E={(Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select -Last 1).date}}                  
+                            $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local 
+                            if (0 -ne $VolumeGroups[0].total) {
+                                $VolumeGroups = $VolumeGroups | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | ForEach { Get-RubrikVolumeGroup -id $_.id | Select -Property @{N="Hostname";E={$_.hostname}},
                                     @{N="Volume Group name";E={$_.name}},@{N="Includes";E={$_.includes | Out-String }},
                                     @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}},
                                     @{N="SnapshotCount";E={ ( Get-RubrikSnapshot -id $_.id).count }},
                                     @{N="LatestBackup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
                                     @{N="OldestBackup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }} }
-                                $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" -List -ColumnWidths 30,70
                             }
-                        }                       
-                        Section -Style Heading3 "Managed Volumes" {
-                            if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                                $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="Volume Size";E={$_.volumeSize}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                    @{N="Assignment Type";E={$_.slaAssignment}}
-                                    #-=MWP=- need to populate everywhere.
-                                if ($ManagedVolumes.Count -ge 1) {
-                                $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes"
-                                }
+                            else {
+                                $VolumeGroups = $null
                             }
-                            elseif ($InfoLevel.ProtectedObjects -in (3,4)) {
-                                $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                            $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
                                 @{N="Volume Size";E={$_.volumeSize}}, @{N="Used";E={$_.usedSize}},
                                 @{N="Is Writable";E={$_.isWritable}}, @{N="State";E={$_.state}},
                                 @{N="# Channels";E={$_.numChannels}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                @{N="Assignment Type";E={$_.slaAssignment}}
-                                $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes" 
+                                @{N="Assignment Type";E={$_.slaAssignment}}, @{N="Snapshot Count";E={$_.snapshotCount}},
+                                @{N="Latest Backup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
+                                @{N="Oldest Backup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }}
+                        }
+
+                        if (0 -ne ($VMwareVMs | Measure-Object).count) {
+                            Section -Style Heading3 "VMware Virtual Machines" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $VMwareVMs | Sort-Object -Property Name | Table -Name "Protected VMware VMs" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $VMwareVMs | Sort-Object -Property Name | Table -Name "Protected VMware VMs" 
+                                }
                             }
-                            elseif ($InfoLevel.ProtectedObjects -ge 5) {
-                                $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
-                                    @{N="Volume Size";E={$_.volumeSize}}, @{N="Used";E={$_.usedSize}},
-                                    @{N="Is Writable";E={$_.isWritable}}, @{N="State";E={$_.state}},
-                                    @{N="# Channels";E={$_.numChannels}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
-                                    @{N="Assignment Type";E={$_.slaAssignment}}, @{N="Snapshot Count";E={$_.snapshotCount}},
-                                    @{N="Latest Backup";E={ ( Get-RubrikSnapshot -id $_.id -latest  ).date }},
-                                    @{N="Oldest Backup";E={ (Get-RubrikSnapshot -id $_.id | Sort-Object -Property date | Select -First 1).date }}
-                                $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes" -List -ColumnWidths 30,70
+                        }
+                        if (0 -ne ($HyperVVMs | Measure-Object).count) {
+                            Section -Style Heading3 "Hyper-V Virtual Machines" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $HyperVVMs | Sort-Object -Property Name | Table -Name "Protected HyperV VMs"
+                                }
                             }
-                        }  
+                        }
+                        if (0 -ne ($NutanixVMs | Measure-Object).count) {
+                            Section -Style Heading3 "Nutanix Virtual Machines" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $NutanixVMs | Sort-Object -Property Name | Table -Name "Protected Nutanix VMs" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $NutanixVMs | Sort-Object -Property Name | Table -Name "Protected Nutanix VMs" 
+                                }
+                            }
+                        }
+                        if (0 -ne ($MSSQLDatabases | Measure-Object).count) {
+                            Section -Style Heading3 "MSSQL Databases" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $MSSQLDatabases | Sort-Object -Property Name | Table -Name "Protected MSSQL Databases" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $MSSQLDatabases | Sort-Object -Property Name | Table -Name "Protected MSSQL Databases" 
+                                }
+                            }
+                        }
+                        if (0 -ne ($OracleDatabases | Measure-Object).count) {
+                            Section -Style Heading3 "Oracle Databases" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $OracleDatabases | Sort-Object -Property Name | Table -Name "Protected Oracle Databases" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $OracleDatabases | Sort-Object -Property Name | Table -Name "Protected Oracle Databases" 
+                                }
+                            }
+                        }
+                        if (0 -ne ($Filesets | Measure-Object).count) {
+                            Section -Style Heading3 "Filesets" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $Filesets | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected Filesets" 
+                                }
+                            }
+                        }
+                        if (0 -ne ($NasShares | Measure-Object).count) {
+                            Section -Style Heading3 "NAS Shares" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $NasShares | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected NAS Shares" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $NasShares | Sort-Object -Property operatingSystemType,Name | Table -Name "Protected NAS Shares" 
+                                }
+                            }
+                        }
+                        if (0 -ne ($VolumeGroups | Measure-Object).count) {
+                            Section -Style Heading3 "Volume Groups" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $VolumeGroups | Sort-Object -Property hostName | Table -Name "Protected Volume Groups" 
+                                }
+                            }
+                        }
+                        if (0 -ne ($ManagedVolumes | Measure-Object).count) {
+                            Section -Style Heading3 "Managed Volumes" {
+                                if ($InfoLevel.ProtectedObjects -ge 5) {
+                                    $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes" -List -ColumnWidths 30,70
+                                }
+                                else {
+                                    $ManagedVolumes | Sort-Object -Property name | Table -Name "Protected Managed Volumes"
+                                }
+                            }
+                        }
                     } # end of Style Heading2 Protected Objects
                 }
                 if ($InfoLevel.SnapshotRetention -ge 1) {

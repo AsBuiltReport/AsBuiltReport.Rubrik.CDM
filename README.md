@@ -1,28 +1,29 @@
 # Rubrik CDM As Built Report
 
 # Getting Started
-Below are the instructions on how to install, configure and generate a Rubrik CDM As Built report.
+Below are the instructions on how to install, configure, and generate a Rubrik CDM As Built report.
 
 ## Pre-requisites
 The following PowerShell modules are required for generating a Rubrik As Built report.
 
 Each of these modules can be easily downloaded and installed via the PowerShell Gallery 
 
-- [Rubrik CDM Powershell SDK](https://www.powershellgallery.com/packages/Rubrik/) *Note:* The Rubrik As Built Report Module currently relies on the `devel` branch of the Rubrik PowerShell SDK. Follow the instructions below to ensure the `devel` branch is the active installation.
+- [Rubrik CDM Powershell SDK](https://www.powershellgallery.com/packages/Rubrik/) 
+    *Note:* The Rubrik As Built Report Module currently relies on the `devel` branch of the Rubrik PowerShell SDK. Follow the instructions below to ensure the `devel` branch is the active installation.
 - [AsBuiltReport Module](https://www.powershellgallery.com/packages/AsBuiltReport/)
 
 ### Module Installation
 
-### Installing the Rubrik CDM PowerShell SDK dev branch
+#### Installing the Rubrik CDM PowerShell SDK devel branch
 
-The `devel` branch within the Rubrik CDM PowerShell SDK contains the cmdlets, functions, and code needed in order to successfully generate a Rubrik As Built Report. This is why it is vital that `devel` is the active Rubrik module on the system generating the report. To install the `devel` branch follow the steps below:
+The `devel` branch within the Rubrik CDM PowerShell SDK contains the cmdlets, functions, and code needed in order to successfully generate a Rubrik As Built Report. Therefore, ensure that `devel` is the active Rubrik module on the system generating the report. To install the `devel` branch follow the steps below:
 
-1. Download the [devel](https://github.com/rubrikinc/rubrik-sdk-for-powershell/tree/devel) to your workstation.
+1. Download the [devel](https://github.com/rubrikinc/rubrik-sdk-for-powershell/tree/devel) branch to your workstation.
 1. Open a Powershell console with the _Run as Administrator_ option.
 1. Run `Set-ExecutionPolicy` using the parameter _RemoteSigned_ or _Bypass_.
 1. Run the `Install-Rubrik.ps1` script in the root of this repository and follow the prompts to install, upgrade, or delete your Rubrik Module contents.
 
-### Installing the AsBuiltReport Module
+#### Installing the As Built Report Module
 
 Installing the As Built Report core module with the below instructions takes care of installing all of subsidary reports, including the Rubrik CDM core report.
 
@@ -38,9 +39,9 @@ Install-Module -Name AsBuiltReport.Vendor.Product
 e.g. Install-Module -Name AsBuiltReport.Rubrik.CDM
 ```
 
-### Required Priveleges
+### Required Privileges
 
-In order to generate a Rubrik CDM As Built Report, user credentials with the administrator role are required. The use of non-administrative credentials may produce undesired results.
+In order to generate a Rubrik CDM As Built Report, user credentials with the administrator role are required. The use of non-administrative credentials may produce incomplete results.
 
 ### Configuration
 
@@ -67,7 +68,7 @@ The **Report** sub-schema provides configuration of the vSphere report informati
 | Report | Status | The report release status
 
 ### Options
-The **Options** sub-schema allows certain options within the report to be toggled on or off
+The **Options** sub-schema allows certain options within the report to be toggled on or off.
 
 Currently the Rubrik CDM As Built Report does not utlize this section.
 
@@ -129,4 +130,4 @@ New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import
 
 ## Known Issues
 - InfoLevel 3 and above causes "User Not Found" messages to be displayed on the console. 
-  - While not a show stopper, when running the Rubrik CDM As Built Report with Cluster Info Level of 3 or higher User not found messages are shown on the console. This is the result of Rubrik tyring to query deeper information about users who no longer have an LDAP Account within the system. Reports continue to generate regardless of the error shown.
+  - While not a show stopper, when running the Rubrik CDM As Built Report with Cluster Info Level of 3 or higher User not found messages are shown in the console. This is the result of Rubrik trying to query deeper information about users who no longer have an LDAP Account within the system. Reports continue to generate regardless of the error shown.
