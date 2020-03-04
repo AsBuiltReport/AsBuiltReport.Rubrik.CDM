@@ -21,7 +21,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
         [PSCredential] $Credential,
         [String]$StylePath
     )
-    $verbose = $true
+    
     # Import JSON Configuration for Options and InfoLevel
     $InfoLevel = $ReportConfig.InfoLevel
     $Options = $ReportConfig.Options
@@ -50,13 +50,14 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
             Write-Error $_
         }
         if ($RubrikCluster) {
+            Write-Verbose -Message "Retrieving Rubrik Cluster Settings"
             $ClusterInfo = Get-RubrikClusterInfo
-            Write-Verbose "Output Rubrik Cluster Settings======================================="
             Section -Style Heading1 $($ClusterInfo.Name) {
                 if ($InfoLevel.Cluster -ge 1) {
                     Section -Style Heading2 'Cluster Settings' { 
                         Paragraph ("The following section provides information on the configuration of the Rubrik CDM Cluster $($ClusterInfo.Name)")
                         BlankLine
+                        Write-Verbose -Message "Retrieving additional cluster settings"
                         #Cluster Summary for InfoLevel 1/2 (Summary/Informative)
                         $ClusterSummary = [ordered]@{
                             'Name' = $ClusterInfo.Name
@@ -89,11 +90,11 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             $banner = Get-RubrikLoginBanner
                             $ClusterSummary.Add('Login Banner', $banner.loginBanner)
                         }
-
+                        Write-Verbose -Message "Output Cluster Summary"
                         # Cluster Information Table
-                        [pscustomobject]$ClusterSummary | Table -Name $ClusterSummary.Name -ColumnWidths 30,70 -List
-                                               
+                        [pscustomobject]$ClusterSummary | Table -Name $ClusterSummary.Name -ColumnWidths 30,70 -List                
                         Section -Style Heading3 'Cluster Storage Details' {
+                            Write-Verbose -Message "Retrieving Cluster Storage Details"
                             $StorageInfo = Get-RubrikClusterStorage
                             $StorageSummary = [ordered]@{
                                 'Total Usable Storage (TB)' = $StorageInfo.TotalUsableStorageInTb
@@ -110,13 +111,16 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $StorageSummary.Add('Average Daily Growth (GB)', $StorageInfo.AverageGrowthPerDayInGb)
                                 $StorageSummary.Add('Estimated Runway (days)', $StorageInfo.EstimatedRunwayInDays)
                             }
+                            Write-Verbose -Message "Output Cluster Storage Details"
                             [pscustomobject]$StorageSummary | Table -Name "Cluster Storage Details" -ColumnWidths 30,70 -List
                         }
 
                         # Node Overview Table
                         if ($InfoLevel.Cluster -ge 3) {
                             Section -Style Heading3 'Member Nodes' { 
+                                Write-Verbose "Retrieving Cluster Node Details"
                                 $NodeInfo = Get-RubrikNode 
+                                Write-Verbose -Message "Output Cluster Node Information"
                                 $NodeInfo | Table -Name "Cluster Node Information" -ColumnWidths 25,12,12,25,25 -Columns brikId,id,status,supportTunnel -Headers 'Brik ID','ID','Status','Support Tunnel'
                             }
                         } # End InfoLevel -ge 3     
@@ -124,15 +128,16 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         # Cluster Info - Networking
                         Section -Style Heading3 'Network Settings' {
                             Paragraph "The following contains network related settings for the cluster"
-                            
                             Section -Style Heading4 'Cluster Interfaces' { 
+                                Write-Verbose -Message "Retrieving Cluster Node Networking Information"
                                 $NodeDetails = Get-RubrikClusterNetworkInterface | Select -Property @{N="Interface Name";E={$_.interfaceName}},
                                     @{N="Type";E={$_.interfaceType}},@{N="Node";E={$_.node}},
                                     @{N="IP Addresses";E={$_.ipAddresses}},@{N="Subnet Mask";E={$_.netmask}}
+                                Write-Verbose "Output Cluster Networking"
                                 $NodeDetails | Table -Name 'Cluster Node Information' 
                             }
 
-
+                            Write-Verbose "Output Cluster DNS"
                             Section -Style Heading4 'DNS Configuration' { 
                                 $DNSDetails = Get-RubrikDNSSetting
                                 $DNSDetails = [ordered]@{
@@ -142,12 +147,14 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 [pscustomobject]$DNSDetails | Table -Name 'DNS Configuration' -List
                             }
                             if ($InfoLevel.Cluster -lt 3) {
+                                Write-Verbose "Retrieving Cluster DNS Information"
                                 $NTPDetails = Get-RubrikNTPServer | Select -Property @{Name="Server";Expression={$_.server}}
                                 $NetworkThrottleDetails = Get-RubrikNetworkThrottle | Select -Property @{Name="Resource ID";Expression={$_.resourceId}}, 
                                     @{Name="Enabled";Expression={$_.isEnabled}},
                                     @{Name="Default Throttle Limit";Expression={$_.defaultthrottleLimit}} 
                             }
                             else {
+                                Write-Verbose "Retrieving Cluster NTP Configuration"
                                 $NTPServers = Get-RubrikNTPServer  
                                 $NTPDetails = @()
                                 foreach ($ntpserver in $NTPServers) {
@@ -159,6 +166,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     }
                                     $NTPDetails += [pscustomobject]$inObj
                                 }
+                                Write-Verbose -Message "Retrieving Network Throttling Information"
                                 $NetworkThrottleDetails = @()
                                 $NetworkThrottles = Get-RubrikNetworkThrottle
                                 foreach ($throttle in $NetworkThrottles) {
@@ -182,28 +190,41 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     $NetworkThrottleDetails += [pscustomobject]$inObj
                                 }
                             }
+                            Write-Verbose -Message "Output NTP Configuration"
                             Section -Style Heading4 'NTP Configuration' {  
                                 $NTPDetails | Table -Name 'NTP Configuration'
                             }
+                            Write-Verbose -Message "Output Network Throttling"
                             Section -Style Heading4 'Network Throttling' {
                                 $NetworkThrottleDetails | Table -Name 'Network Throttling'
                             }
+                            
                             Section -Style Heading4 'Proxy Server' {
+                                Write-Verbose -Message "Retrieving Proxy Information"
                                 $ProxyDetails = Get-RubrikProxySetting
-                                if ($ProxyDetails.length -gt 0) { $ProxyDetails | Table -Name 'Proxy Configuration' }
+                                if ($ProxyDetails.length -gt 0) { 
+                                    Write-Verbose -Message "Output Proxy Settings"
+                                    $ProxyDetails | Table -Name 'Proxy Configuration' 
+                                }
                                 else { Paragraph "There are currently no proxy servers configured on this cluster"}
                             }
 
                         } # End Heading 3 - Network Settings
                         Section -Style Heading3 'Notification Settings' {
                             Paragraph "The following contains notification settings configured on the cluster"
-                           
+                            
                             Section -Style Heading4 'Email Settings' { 
+                                Write-Verbose -Message "Retrieving Email Information"
                                 $EmailDetails = Get-RubrikEmailSetting
-                                if ($EmailDetails.Length -gt 0) { $EmailDetails | Table -Name 'Email Details' -Columns id,smtpHostname,smtpPort,smtpUsername,fromEmailId,smtpSecurity -Headers 'ID','SMTP Server','Port','Username','From Email','Security' }
+                                if ($EmailDetails.Length -gt 0) { 
+                                    Write-Verbose -Message "Output Email Settings"
+                                    $EmailDetails | Table -Name 'Email Details' -Columns id,smtpHostname,smtpPort,smtpUsername,fromEmailId,smtpSecurity -Headers 'ID','SMTP Server','Port','Username','From Email','Security' 
+                                }
                                 else { Paragraph "There are currently no email settings configured on this cluster"}
                             }
+                            
                             Section -Style Heading4 'SNMP Settings' { 
+                                Write-Verbose -Message "Retrieving SNMP Information"
                                 $SNMPInfo = Get-RubrikSNMPSetting
                                 $inObj = [ordered]@{
                                         'Community String' = $($SNMPInfo.communityString)
@@ -218,20 +239,25 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 }
                                 $inObj.add('Receiver Configurations', $strTraps)
                                 $SNMPDetails = [pscustomobject]$inObj
+                                Write-Verbose -Message "Output SNMP Settings"
                                 $SNMPDetails | Table -Name 'SNMP Settings' 
                             }
                             
                             Section -Style Heading4 'Notification Settings' { 
+                                Write-Verbose -Message "Retrieving Notification Settings"
                                 $NotificationDetails = Get-RubrikNotificationSetting | Select -Property @{N="ID";E={$_.id}}, 
                                     @{N="Event Types";E={$_.eventTypes | Out-String}},@{N="SNMP Addresses";E={$_.snmpAddresses}},
                                     @{N="Email Addresses";E={$_.emailAddresses}},@{N="Send to syslog";E={$_.shouldSendToSyslog}}
+                                Write-Verbose -Message "Output Notification Settings"
                                 $NotificationDetails | Table -Name 'Notification Settings' 
                             }
                         } # End Heading 3 - NOtification Settings
+
                         Section -Style Heading3 'Security Settings' {
                             Paragraph "The following contains security related settings configured on the cluster"
-                           
+                            
                             Section -Style Heading4 'IPMI Settings' { 
+                                Write-Verbose -Message "Retrieving IPMI Information"
                                 $IPMIInformation = Get-RubrikIPMI
                                 $inObj =[ordered] @{
                                     'IPMI Available'        = $IPMIInformation.isAvailable
@@ -241,15 +267,19 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     'Virtual Media Access'  = $IPMIInformation.access.virtualMedia
                                 }
                                 $IPMIDetails = [pscustomobject]$inObj
+                                Write-Verbose -Message "Output IPMI Settings"
                                 $IPMIDetails | Table -Name 'IPMI Settings' 
                             }
+                            
                             Section -Style Heading4 'SMB Domains' {
                                 if ($InfoLevel.Cluster -in (1,2)){
+                                    Write-Verbose -Message "Retrieving SMB Domains"
                                     $SMBDomainInformation = Get-RubrikSMBDomain | Select @{Name="Name";Expression={$_.name}},
                                         @{Name="Status";Expression={$_.status}},
                                         @{Name="Service Account";Expression={$_.serviceAccount}}
                                 }
                                 else {
+                                    Write-Verbose -Message "Retrieving SMB Domains"
                                     $SMBSecurityInformation = Get-RubrikSMBSecurity
                                     $SMBDomainInformation = Get-RubrikSMBDomain | Select @{N="Name";E={$_.name}},
                                         @{N="Status";E={$_.status}},
@@ -257,20 +287,28 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                         @{N="Sticky SMB Service";E={$_.isStickySmbService}},
                                         @{Name = 'Force SMB Security'; Expression = {$SMBSecurityInformation.enforceSmbSecurity}}
                                 } 
+                                Write-Verbose -Message "Output SMB Domains"
                                 $SMBDomainInformation | Table -Name 'SMB Domains' 
                             }
+                            
                             Section -Style Heading4 'Syslog Settings' { 
+                                Write-Verbose -Message "Retrieving Syslog Information"
                                 $SyslogInformation = Get-RubrikSyslogServer | Select -Property @{N="Hostname";E={$_.hostname}},
                                     @{N="Protocol";E={$_.protocol}},@{N="Port";E={$_.port}}
+                                Write-Verbose -Message "Ouput Syslog Settings"
                                 $SyslogInformation | Table -Name 'Syslog Settings'
                             }
+                            
                             Section -Style Heading4 'Security Classification Settings' {
+                                Write-Verbose -Message "Retrieving Security Classification Settings"
                                 $SecurityInformation = Get-RubrikSecurityClassification | Select -Property @{N="Color";E={$_.classificationColor}},
                                     @{N="Message";E={$_.classificationMessage}}
+                                Write-Verbose -Message "Output Security Classification Settings"
                                 $SecurityInformation | Table -Name 'Security Classification Settings' -ColumnWidths 50,50
                             }
-
+                            
                             Section -Style Heading4 'User Details' { 
+                                Write-Verbose -Message "Retrieving User Details"
                                 if ($InfoLevel.Cluster -in (1,2)){
                                     $UserDetails = Get-RubrikUser | Select -Property @{N="Username";E={$_.username}},
                                         @{N="First Name";E={$_.firstName}},@{N="Last Name";E={$_.lastName}},
@@ -293,20 +331,26 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                         } 
                                         $UserDetails += [pscustomobject]$inObj
                                     }
+                                    Write-Verbose -Message "Output User Details"
                                     $UserDetails | Table -Name 'User Details' -ColumnWidths 20,80 -List
                                 }
                             }
+                            
                             Section -Style Heading4 'LDAP Settings' { 
                                 if ($InfoLevel.Cluster -in (1,2)) {
+                                    Write-Verbose -Message "Retrieving LDAP Settings"
                                     $LDAPDetails = Get-RubrikLDAP | Select -Property @{N="Name";E={$_.name}},
                                         @{N="Domain Type";E={$_.domainType}},@{N="Initial Refresh Status";E={$_.initialRefreshStatus}}
+                                    Write-Verbose -Message "Output LDAP Settings"
                                     $LDAPDetails | Table -Name 'LDAP Settings' 
                                 }
                                 else {
+                                    Write-Verbose -Message "Retrieving LDAP Settings"
                                     $LDAPDetails = Get-RubrikLDAP | Select -Property @{N="Name";E={$_.name}},
                                         @{N="Domain Type";E={$_.domainType}},@{N="Initial Refresh Status";E={$_.initialRefreshStatus}},
                                         @{N="Dynamic DNS Name";E={$_.dynamicDnsName}},@{N="Service Account";E={$_.serviceAccount}},
                                         @{N="Bind Username";E={$_.bindUserName}},@{Name="Advanced Options"; Expression = {$_.advancedOptions | Out-String}}
+                                    Write-Verbose -Message "Output LDAP Settings"
                                     $LDAPDetails | Table -Name 'LDAP Settings' -ColumnWidths 20,80 -List 
                                 }
                             }
@@ -315,12 +359,16 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Paragraph "The following contains backup related settings configured on the cluster"
                             
                             Section -Style Heading4 'Guest OS Credentials' { 
+                                Write-Verbose -Message "Retrieving Guest OS Credentials"
                                 $GuestOSCredentials = Get-RubrikGuestOsCredential | Select -Property @{N="Username";E={$_.username}},
                                     @{N="Domain";E={$_.domain}}
+                                Write-Verbose -Message "Output Guest OS Credentials"
                                 $GuestOSCredentials | Table -Name 'Guest OS Credentials' -ColumnWidths 50,50 
                             }
                             Section -Style Heading4 'Miscellaneous Backup Configurations' { 
+                                Write-Verbose -Message "Retrieving Miscellaneous Backup Settings"
                                 $BackupServiceDeployment = Get-RubrikBackupServiceDeployment | Select @{Name="Automatically Deploy RBS"; Expression = {$_.isAutomatic}}
+                                Write-Verbose -Message "Output Miscellaneous Backup Settings"
                                 $BackupServiceDeployment | Table -Name 'Miscellaneous Backup Configuration' -ColumnWidths 30,70 -List 
                             }
                         } # End Heading 3 - Backup Settings
@@ -328,52 +376,63 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Paragraph "The following contains information around the backup sources configured on the cluster"
                             
                             if ($InfoLevel.Cluster -lt 3) {
+                                Write-Verbose -Message "Retrieving vCenter Information"
                                 $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Username";E={$_.username}}
+                                Write-Verbose -Message "Retrieving vCloud Director Information"
                                 $VMwareVCD = Get-RubrikVCD | where {$_.PrimaryClusterId -eq (Get-RubrikSetting).id} | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}}, 
                                     @{N="Username";E={$_.username}}, 
                                     @{Name="Connection Status"; Expression={$_.connectionStatus.status}}
+                                Write-Verbose -Message "Retrieving Nutanix Information"
                                 $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Username";E={$_.username}}, 
                                     @{Name="Connection Status"; Expression={$_.connectionStatus.status}}
+                                Write-Verbose -Message "Retrieving SCVMM Information"
                                 $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Run As";E={$_.runAsAccount}},
                                     @{N="Connection Status";E={$_.status}}
+                                Write-Verbose -Message "Retrieving Windows Hosts Information"
                                 $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Operating System";E={$_.operatingSystem}},
                                     @{N="Connection Status";E={$_.status}} 
+                                Write-Verbose -Message "Retrieving Linux Hosts Information"
                                 $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Operating System";E={$_.operatingSystem}},
                                     @{N="Connection Status";E={$_.status}} 
                             }
                             else {
+                                Write-Verbose -Message "Retrieving vCenter Information"
                                 $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Username";E={$_.username}}, 
                                     @{Name="VM Linking"; Expression = {$_.conflictResolutionAuthz}}, 
                                     @{Name="Certificate";E={$_.caCerts}}
+                                Write-Verbose -Message "Retrieving vCloud Directory Information"
                                 $VMwareVCD = Get-RubrikVCD | where {$_.PrimaryClusterId -eq (Get-RubrikSetting).id} | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}}, 
                                     @{N="Username";E={$_.username}}, 
                                     @{Name="Connection Status"; Expression={$_.connectionStatus.status}}, 
                                     @{Name="Connection Message"; Expression={$_.connectionStatus.message}}, 
                                     @{N="Certificate";E={$_.caCerts}}
+                                Write-Verbose -Message "Retrieving Nutanix Information"
                                 $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Username";E={$_.username}}, 
                                     @{Name="Connection Status"; Expression={$_.connectionStatus.status}},
                                     @{N="Certificate";E={$_.caCerts}}
+                                Write-Verbose -Message "Retrieving SCVMM Information"
                                 $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Run As";E={$_.runAsAccount}},
                                     @{N="Connection Status";E={$_.status}},
                                     @{N="Deploy Agent";E={$_.shouldDeployAgent}}
+                                Write-Verbose -message "Retrieving Windows Hosts Informatoin"
                                 $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" -DetailedObject  | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Operating System";E={$_.operatingSystem}},
@@ -386,6 +445,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="VFD Driver State";E={$_.hostVfdDriverState}},
                                     @{N="VFD Enabled";E={$_.hostVfdEnabled}},
                                     @{N="Is Relic";E={$_.isRelic}}
+                                Write-Verbose -Message "Retrieving Linux Hosts Information"
                                 $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" -DetailedObject | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Operating System";E={$_.operatingSystem}},
@@ -400,8 +460,9 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="Is Relic";E={$_.isRelic}}
                             }
 
-
+                            
                             if (0 -ne ($VMwarevCenter | Measure-Object).count ) {
+                                Write-Verbose -Message "Outputing vCenter Information"
                                 Section -Style Heading4 'VMware vCenter Servers' { 
                                     Paragraph "The following table outlines the VMware vCenter Servers which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) { $VMwarevCenter | Table -Name 'VMware vCenter Server'}
@@ -409,6 +470,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 } 
                             }
                             if (0 -ne ($VMwareVCD | Measure-Object).count ) {
+                                Write-Verbose -Message "Output vCloud Director Information"
                                 Section -Style Heading4 'VMware vCloud Director Clusters' { 
                                     Paragraph "The following table outlines the VMware vCloud Director clusters which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) { $VMwareVCD | Table -Name 'VMware vCloud Director Clusters' }
@@ -416,6 +478,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 }
                             } 
                             if (0 -ne ($SCVMMServers | Measure-Object).count ) {
+                                Write-Verbose -Message "Output Hyper-V Information"
                                 Section -Style Heading4 'Hyper-V SCVMM Servers' { 
                                     Paragraph "The following table outlines the SCVMM Servers which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) { $SCVMMServers | Table -Name 'Hyper-V SCVMM Servers' }
@@ -423,6 +486,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 }
                             } 
                             if (0 -ne ($NutanixClusters | Measure-Object).count ) {
+                                Write-Verbose -Message "Output Nutanix Information"
                                 Section -Style Heading4 'Nutanix Clusters' { 
                                     Paragraph "The following table outlines the Nutanix clusters which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) {$NutanixClusters | Table -Name 'Nutanix Clusters' }
@@ -430,6 +494,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 }
                             }
                             if (0 -ne ($WindowsHosts | Measure-Object).count ) {
+                                Write-Verbose -Message "Output Windows Host Information"
                                 Section -Style Heading4 'Windows Hosts' { 
                                     Paragraph "The following table outlines the Windows Hosts which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) { $WindowsHosts | Table -Name 'Windows Hosts' } 
@@ -437,6 +502,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 }
                             }
                             if (0 -ne ($LinuxHosts | Measure-Object).count ) {
+                                Write-Verbose -Message "Output Linux Host Information"
                                 Section -Style Heading4 'Linux Hosts' { 
                                     Paragraph "The following table outlines the Linux Hosts which have been added to the Rubrik cluster"
                                     if ($InfoLevel.Cluster -lt 3) { $LinuxHosts | Table -Name 'Linux Hosts' } 
@@ -446,63 +512,72 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         } # End Heading 3 Backup Sources
                         Section -Style Heading3 'Replication Configuration' {
                             Paragraph "The following contains information  around the replication configuration on the cluster"
+                            Write-Verbose -message "Retrieving Replication Sources"
                             $ReplicationSources = Get-RubrikReplicationSource | Select @{N="Cluster Name";E={$_.sourceClusterName}},
                                 @{N="Cluster Address";E={$_.sourceClusterAddress}},
                                 @{N="Cluster UUID";E={$_.sourceClusterUuid}},
                                 @{N="Replication Network Setup";E={$_.replicationSetup}}
+                            Write-Verbose -Message "Retrieving Replication Targets"
                             $ReplicationTargets = Get-RubrikReplicationTarget | Select @{N="Cluster Name";E={$_.targetClusterName}},
                                 @{N="Cluster Address";E={$_.targetClusterAddress}},
                                 @{N="Cluster UUID";E={$_.targetClusterUuid}},
                                 @{N="Replication Network Setup";E={$_.replicationSetup}}
-
+                            Write-Verbose -Message "Output Replication Sources"
                             Section -Style Heading4 'Replication Sources' { 
                                 Paragraph "The following table outlines locations which have been configured as a replication source to this cluster"
                                 $ReplicationSources | Table -Name 'Replication Sources'
                             }
+                            Write-Verbose -Message "Output Replication Targets"
                             Section -Style Heading4 'Replication Targets' { 
                                 Paragraph "The following table outlines locations which have been configured as a replication targets for this cluster"
                                 $ReplicationTargets | Table -Name 'Replication Sources'
                             }
                         } # End Heading 3 Replication Configuration
-
                         Section -Style Heading3 'Archive Targets' {
                             Paragraph "The following contains information around configured archive targets on the cluster"
                             # Gather Information
                             # Global Configs for all InfoLevels
+                            Write-Verbose -Message "Retrieving Archive Information"
                             $ArchiveTargets = Get-RubrikArchive | Select -Property @{N="Name";E={$_.name}},
                                 @{N="Bucket";E={$_.bucket}},@{N="State";E={$_.currentState}},
                                 @{N="LocationType";E={$_.locationType}}
                             if ($InfoLevel.Cluster -lt 3) {
+                                Write-Verbose -Message "Output S3 Targets"
                                 Section -Style Heading4 'S3 Targets' {
                                     if ( ($ArchiveTargets | Where-Object {$_.locationType -eq 'S3'}  | Measure-Object ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'S3'} | Table -Name 'S3 Archives'
                                     }
                                     else { Paragraph "There are currently no S3 targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output Glacier Targets"
                                 Section -Style Heading4 'Glacier Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Measure-Object  ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Table -Name 'Glacier Archives'
                                     }
                                     else { Paragraph "There are currently no Glacier targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output Azure Targets"
                                 Section -Style Heading4 'Azure Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Measure-Object ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Table -Name 'Azure Archives'
                                     }
                                     else { Paragraph "There are currently no Azure targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output Google Targets"
                                 Section -Style Heading4 'Google Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Measure-Object  ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Table -Name 'Google Archives'
                                     }
                                     else { Paragraph "There are currently no Google Cloud targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output NFS Targets"
                                 Section -Style Heading4 'NFS Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Nfs'}  | Measure-Object ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'NFS'} | Table -Name 'NFS Archives'
                                     }
                                     else { Paragraph "There are currently no NFS targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output Tape Targets"
                                 Section -Style Heading4 'Tape Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Qstar'} | Measure-Object  ).count -gt 0) {
                                         $ArchiveTargets | Where-Object {$_.locationType -eq 'QStar'} | Table -Name 'Tape Archives'
@@ -511,6 +586,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 }
                             }
                             else {
+                                Write-Verbose -Message "Output S3 Targets"
                                 Section -Style Heading4 'S3 Archive Targets' {
                                     if ( ($ArchiveTargets | Where-Object {$_.locationType -eq 'S3'}  | Measure-Object ).count -gt 0) {
                                         $S3Targets = Get-RubrikArchive -ArchiveType S3 -DetailedObject | Select @{Name="Name"; Expression={$_.definition.name}},
@@ -528,6 +604,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     }
                                     else { Paragraph "There are currently no S3 targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output Glacier Targets"
                                 Section -Style Heading4 'Glacier Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Glacier'} | Measure-Object  ).count -gt 0) {
                                         $GlacierTargets = Get-RubrikARchive -ArchiveType Glacier -DetailedObject | Select @{Name="Name";Expression={$_.definition.name}},
@@ -542,6 +619,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     }
                                     else { Paragraph "There are currently no Glacier targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output Azure Targets"
                                 Section -Style Heading4 'Azure Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Azure'} | Measure-Object ).count -gt 0) {
                                         $AzureTargets = Get-RubrikArchive -ArchiveType Azure -DetailedObject | Select @{Name="Name";Expression={$_.definition.name}},
@@ -562,11 +640,13 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     }
                                     else { Paragraph "There are currently no Azure targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output Google Cloud Targets"
                                 Section -Style Heading4 'Google Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Google'} | Measure-Object  ).count -gt 0) {
                                     }
                                     else { Paragraph "There are currently no Google Cloud targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output NFS Targets"
                                 Section -Style Heading4 'NFS Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'NFS'} | Measure-Object  ).count -gt 0) {
                                         $NFSTargets = Get-RubrikARchive -ArchiveType Nfs -DetailedObject | Select @{Name="Name";Expression={$_.definition.name}},
@@ -584,12 +664,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     }
                                     else { Paragraph "There are currently no NFS targets configured on the cluster."}
                                 }
+                                Write-Verbose -Message "Output Tape Targets"
                                 Section -Style Heading4 'Tape Targets' {
                                     if (($ArchiveTargets | Where-Object {$_.locationType -eq 'Qstar'} | Measure-Object  ).count -gt 0) {
                                     }
                                     else { Paragraph "There are currently no tape targets configured on the cluster."}
                                 }
-
                             }
                         } # End Heading 3 Archive Targets
                     } #End Heading 2
@@ -599,18 +679,20 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         Paragraph ("The following section provides information on the configured SLA Domains")
                         BlankLine
                         if ($InfoLevel.SLADomains -lt 3) {
+                            Write-Verbose -Message "Retrieving SLA Domain Information"
                             $SLADomains = Get-RubrikSLA -PrimaryClusterId 'local' | Select @{N="Name";E={$_.name}},
                             @{N="Base Frequency";E={if ($_.frequencies.hourly) {'{0} Hours' -f $_.frequencies.hourly.frequency} elseif ($_.frequencies.daily) {'{0} Days' -f $_.frequencies.daily.frequency}}},
                             @{N="Object Count";E={$_.numProtectedObjects}},
                             @{N="Archival Location";E={(Get-RubrikArchive -id $_.archivalSpecs.locationId).Name}},
                             @{N="Replication Location";E={(Get-RubrikReplicationTarget -id $_.replicationSpecs.locationId).targetClusterName}}                       
-                        
+                            Write-Verbose -Message "Output SLA Domain Information"
                             $SLADomains | Table -Name 'SLA Domain Summary' 
                         }
                         elseif ($InfoLevel.SLADomains -le 5) {
                             $SLADomains = Get-RubrikSLA -PrimaryClusterId 'local' 
                             foreach ($SLADomain in $SLADomains) {
                                 Section -Style Heading3 $SLADomain.name {
+                                    Write-Verbose -Message "Retrieving detailed SLA Domain Information for $($sladomain.name)"
                                     Paragraph ("The following outlines the configuration options for $($sladomain.name)")
 
                                     Section -Style Heading4 "General Settings" {
@@ -636,9 +718,11 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                             'Archival Location'     = $ArchiveLocationName
                                             'Replication Target'    = $ReplicationLocationName
                                         } 
+                                        Write-Verbose -Message "Output SLA Domain General Settings"
                                         [PSCustomObject]$SLAGeneral | Table -Name "General Settings" -ColumnWidths 30,70 -List
                                     }
                                     Section -Style Heading4 "SLA Frequency Settings" {
+                                        Write-Verbose -Message "Retrieving SLA Domain Frequency Information"
                                         if ($null -ne $SLADomain.advancedUiConfig) {
                                             $SLAFrequency = @()
 
@@ -767,10 +851,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                                 $SLAFrequency += [pscustomobject]$yearly
                                             }
                                         }
+                                        Write-Verbose -Message "Output SLA Domain Frequency Settings"
                                         $SLAFrequency | Table -Name "SLA Frequencies" -Columns 'Take backups every','Retain backups for'
                                     }
                                     Section -Style Heading4 "SLA Archival Settings" {
                                         if ($null -ne $SLADomain.archivalSpecs.locationId) {
+                                            Write-Verbose -Message "Retrieving SLA Domain Archive Information"
                                             $ArchiveInformation = Get-RubrikArchive -id $SLADomain.archivalSpecs.locationId -DetailedObject
 
                                             $Archive = [ordered] @{
@@ -778,7 +864,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                                 'Archive Location Type' = $ArchiveInformation.locationType
                                                 'Archive data after' = "$($SLADomain.archivalSpecs.archivalThreshold/60/60/24) Day(s)"
                                             }
-
+                                            Write-Verbose -Message "Output SLA Domain Archive Information"
                                             [pscustomobject]$Archive | Table -Name "Archival Information" -List -ColumnWidths 30,70
                                         }
                                         else {
@@ -787,6 +873,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     }
                                     Section -Style Heading4 "SLA Replication Settings" {
                                         if ($null -ne $SLADomain.replicationSpecs.locationId) {
+                                            Write-Verbose -Message "Retrieving SLA Domain Replication Settings"
                                             $ReplicationInformation = Get-RubrikReplicationTarget -id $SLADomain.replicationSpecs.locationId 
 
                                             $Replication = [ordered] @{
@@ -794,7 +881,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                                 'Target Replication Cluster Address' = $ReplicationInformation.targetClusterAddress
                                                 'Keep Replica on target cluster for' = "$($SLADomain.replicationSpecs.retentionLimit/60/60/24) Day(s)"
                                             }
-
+                                            Write-Verbose "Output SLA Domain Replication Settings"
                                             [pscustomobject]$Replication | Table -Name "Replication Information" -List -ColumnWidths 30,70
                                         }
                                         else {
@@ -804,6 +891,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     
                                     Section -Style Heading4 "SLA Protected Object Count" {
                                         if ($SLADomain.numProtectedObjects -gt 0) {
+                                            Write-Verbose -Message "Output SLA Domain Protected Object Summary"
                                             $SLADomain | Table -Name "Protected Object Summary" -Columns numVms,numHypervVms,numNutanixVms,numVcdVapps,numEc2Instances,numDbs,numOracleDbs,numFilesets,numWindowsVolumeGroups,numManagedVolumes,numShares,numStorageArrayVolumeGroups -Headers 'VMware VMs','HyperV VMs','Nutanix VMs','VCD vApps','EC2 Instances','MSSQL DBs','Oracle DBs','Filesets','Windows Volume Groups','Managed Volumes','NAS Shares','Storage Array Volumes' -List -ColumnWidths 30,70
                                         }
                                         else {
@@ -818,56 +906,74 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                             if ($SLADomain.numProtectedObjects -gt 0) {
                                                 if ($SLADomain.numVms -gt 0) {
                                                     Section -Style Heading5 "VMware VMs" {
+                                                        Write-Verbose -Message "Retrieving VMware VMs protected by SLA"
                                                         $Objects = Get-RubrikVM -SLAID $SLADomain.Id | Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={$_.slaAssignment}} | Sort-Object -Property Name
+                                                        Write-Verbose -Message "Output Protected VMware VMS"
                                                         $Objects | Table -Name "Protected VMware VMs" -ColumnWidths 50,50
                                                     }
                                                 }
                                                 if ($SLADomain.numHyperVvms -gt 0) {
                                                     Section -Style Heading5 "HyperV VMs" {
+                                                        Write-Verbose -Message "Retrieving protected Hyper-V VMs"
                                                         $Objects = Get-RubrikHyperVVM -SLAID $SLADomain.Id |Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={$_.slaAssignment}} | Sort-Object -Property Name
+                                                        Write-Verbose -Message "Ouput HyperV VMs"
                                                         $Objects | Table -Name "Protected HyperV VMs" -ColumnWidths 50,50
                                                     }
                                                 }
                                                 if ($SLADomain.numNutanixvms -gt 0) {
                                                     Section -Style Heading5 "Nutanix VMs" {
+                                                        Write-Verbose -Message "Retrieving protected Nutanix VMs"
                                                         $Objects = Get-RubrikNutanixVM -SLAID $SLADomain.Id | Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={$_.slaAssignment}} |Sort-Object -Property Name 
+                                                        Write-Verbose -Message "Output Nutanix VMs"
                                                         $Objects | Table -Name "Protected Nutanix VMs" -ColumnWidths 50,50
                                                     }
                                                 }
                                                 if ($SLADomain.numVcdVapps -gt 0) {
                                                     Section -Style Heading5 "VCD vApps" {
+                                                        Write-Verbose -Message "Retrieving Protected vCloud Director vApps"
                                                         $Objects = Get-RubrikvApp -SLAID $SLADomain.Id | Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={$_.slaAssignment}} | Sort-Object -Property Name
+                                                        Write-Verbose -Message "Output VCD vApps"
                                                         $Objects | Table -Name "Protected VCD vApps"  -ColumnWidths 50,50
                                                     }
                                                 }
                                                 #-=MWP=- Reserve for EC2 Instances - need to create cmdlet -=MWP=-
                                                 if ($SLADomain.numDbs -gt 0) {
                                                     Section -Style Heading5 "MSSQL Databases" {
+                                                        Write-Verbose -Message "Retrieving protected MSSQL DBs"
                                                         $Objects = Get-RubrikDatabase -SLAID $SLADomain.Id  | Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={$_.slaAssignment}},@{N="Parent Host";E={$_.rootProperties.rootName}} |Sort-Object -Property Name
+                                                        Write-Verbose -Message "Ouput MSSQL Databases"
                                                         $Objects | Table -Name "Protected MSSQL Databases" -ColumnWidths 33,33,34
                                                     }
                                                 }
                                                 if ($SLADomain.numOracleDbs -gt 0) {
                                                     Section -Style Heading5 "Oracle Databases" {
+                                                        Write-Verbose -Message "Retrieving Protected Oracle DBs"
                                                         $Objects = Get-RubrikOracleDB -SLAID $SLADomain.Id | Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={$_.slaAssignment}},@{N="ParentHost";E={$_.instances.hostName}} |  Sort-Object -Property Name
+                                                        Write-Verbose -Message "Output Oracle DBs"
                                                         $Objects | Table -Name "Protected Oracle Databases" -ColumnWidths 33,33,34
                                                     }
                                                 }
                                                 if ($SLADomain.numFilesets -gt 0) {
                                                     Section -Style Heading5 "Filesets" {
+                                                        Write-Verbose -Message "Retrieving Protected filesets"
                                                         $Objects = Get-RubrikFileset -SLAID $SLADomain.Id | Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={"Direct"}},@{N="Attached to host";E={$_.hostname}} | Sort-Object -Property Name
+                                                        Write-Verbose -Message "Output Protected Filesets"
                                                         $Objects | Table -Name "Protected Filesets" -ColumnWidths 33,33,34
                                                     }
                                                 }
                                                 if ($SLADomain.numWindowsVolumeGroups -gt 0) {
                                                     Section -Style Heading5 "Windows Volume Groups" {
+                                                        Write-Verbose -Message "Retrieving Protected Windows Volume Groups"
                                                         $Objects = Get-RubrikVolumeGroup -SLAID $SLADomain.Id | Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={$_.slaAssignment}},@{N="Attached to host";E={$_.hostname}} | Sort-Object -Property Name
+                                                        Write-Verbose -Message "Output Protected Volume Groups"
                                                         $Objects | Table -Name "Protected Volume Groups"  -ColumnWidths 33,33,34
                                                     }
                                                 }
                                                 if ($SLADomain.numManagedVolumes -gt 0) {
                                                     Section -Style Heading5 "Managed Volumes" {
+                                                        Write-Verbose -Message "Retrieving Protected Managed Volumes"
                                                         $Objects = Get-RubrikManagedVolume -SLAID $SLADomain.Id | Select-Object -Property @{N="Name";E={$_.name}},@{N="Assignment Type";E={$_.slaAssignment}} | Sort-Object -Property Name
+                                                        Write-Verbose -Message "Output Managed Volumes"
                                                         $Objects | Table -Name "Protected Managed Volumes" -ColumnWidths 50,50
                                                     }
                                                 }
@@ -888,27 +994,36 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                     Section -Style Heading2 "Protected Objects" {
                         Paragraph("The following shows details around all protected objects configured within the Rubrik cluster")
                         if ($InfoLevel.ProtectedObjects -in (1,2)) {
-                            $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                Write-Verbose -Message "Retrieving Protected VMware VMs"
+                                $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local' | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
                                 @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
-                            $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                Write-Verbose -Message "Retrieving Protected Hyper V VMs"
+                                $HyperVVMs = Get-RubrikHypervVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
                                 @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
-                            $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                Write-Verbose -Message "Retrieving Protected Nutanix VMs"
+                                $NutanixVMs = Get-RubrikNutanixVM -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
                                 @{N="SLA Domain";E={$_.effectiveSlaDomainName}},@{N="Assignment Type";E={$_.slaAssignment}}
-                            $MSSQLDatabases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                Write-Verbose -Message "Retrieving Protected MSSQL DBs"
+                                $MSSQLDatabases = Get-RubrikDatabase -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
                                 @{N="Recovery Model";E={$_.recoveryModel}},@{N="SLA Domain";E={$_.effectiveSlaDomainName}},
                                 @{N="Assignment Type";E={$_.slaAssignment}}
-                            $OracleDatabases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                Write-Verbose -Message "Retrieving Protected Oracle DBs"
+                                $OracleDatabases = Get-RubrikOracleDB -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainName -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
                                 @{N="SID";E={$_.sid}},  @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
                                 @{N="Assignment Type";E={$_.slaAssignment}}
-                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                Write-Verbose -Message "Retrieving Protected Filesets"
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
                                 @{N="Operating System";E={$_.operatingSystemType}},@{N="Fileset Name";E={$_.name}}, 
                                 @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
-                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                Write-Verbose -Message "Retrieving Protected NAS Shares"
+                                $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | where {$_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select -Property @{N="Hostname";E={$_.hostname}},
                                 @{N="Fileset Name";E={$_.name}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}}
-                            $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Hostname";E={$_.hostname}},
+                                Write-Verbose -Message "Retrieving Protected Volume Groups"
+                                $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Hostname";E={$_.hostname}},
                                 @{N="Volume Group name";E={$_.name}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
                                 @{N="Assignment Type";E={$_.slaAssignment}}
-                            $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
+                                Write-Verbose -Message "Retrieving Protected Managed Volumes"
+                                $ManagedVolumes = Get-RubrikManagedVolume -Relic:$false -PrimaryClusterID local | where {$_.effectiveSlaDomainId -ne 'Unprotected' } | Select -Property @{N="Name";E={$_.name}},
                                 @{N="Volume Size";E={$_.volumeSize}}, @{N="SLA Domain";E={$_.effectiveSlaDomainName}},
                                 @{N="Assignment Type";E={$_.slaAssignment}}
                         }
