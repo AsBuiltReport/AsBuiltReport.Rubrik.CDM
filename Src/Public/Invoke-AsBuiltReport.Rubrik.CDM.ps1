@@ -14,12 +14,14 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     .LINK
         https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM
     #>
+
+    [cmdletbinding()]
     param (
         [String[]] $Target,
         [PSCredential] $Credential,
         [String]$StylePath
     )
-
+    $verbose = $true
     # Import JSON Configuration for Options and InfoLevel
     $InfoLevel = $ReportConfig.InfoLevel
     $Options = $ReportConfig.Options
@@ -49,7 +51,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
         }
         if ($RubrikCluster) {
             $ClusterInfo = Get-RubrikClusterInfo
-            
+            Write-Verbose "Output Rubrik Cluster Settings======================================="
             Section -Style Heading1 $($ClusterInfo.Name) {
                 if ($InfoLevel.Cluster -ge 1) {
                     Section -Style Heading2 'Cluster Settings' { 
