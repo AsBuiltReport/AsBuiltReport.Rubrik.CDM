@@ -1,5 +1,11 @@
 # Rubrik CDM As Built Report Changelog
 
+## [1.0.0] 2020-03-05
+
+### Added
+- Null/Count/Total checks to many outputs
+- Verbose logging capabilities
+
 ## [0.0.2] 2020-01-16
 
 ### Modified
