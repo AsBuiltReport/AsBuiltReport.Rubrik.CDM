@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Modified
+
+* Null checks on backup sources
+
 ## [0.0.6]
 
 ### Modified

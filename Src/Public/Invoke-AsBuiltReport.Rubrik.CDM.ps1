@@ -375,7 +375,14 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         } # End Heading 3 - Backup Settings
                         Section -Style Heading3 'Backup Sources' {
                             Paragraph "The following contains information around the backup sources configured on the cluster"
-
+                            # Null checks for those cmdlets requiring -DetailedObject
+                            # Temporary until built into the SDK
+                            if ($InfoLevel.Cluster -ge 1) {
+                                $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId local
+                                $SCVMMServers = Get-RubrikSCVMM -PrimaryClusterID local
+                                $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows"
+                                $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux"
+                             }
                             if ($InfoLevel.Cluster -lt 3) {
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving vCenter Information"
                                 $VMwarevCenter = Get-RubrikvCenter -PrimaryClusterId "local" | Select @{N="Name";E={$_.name}},
@@ -387,25 +394,49 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="Username";E={$_.username}},
                                     @{Name="Connection Status"; Expression={$_.connectionStatus.status}}
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Nutanix Information"
-                                $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
-                                    @{N="Hostname";E={$_.hostname}},
-                                    @{N="Username";E={$_.username}},
-                                    @{Name="Connection Status"; Expression={$_.connectionStatus.status}}
+                                if ($null -ne $NutanixClusters -and 0 -ne $NutanixClusters[0].total) {
+                                    $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
+                                        @{N="Hostname";E={$_.hostname}},
+                                        @{N="Username";E={$_.username}},
+                                        @{Name="Connection Status"; Expression={$_.connectionStatus.status}}
+                                }
+                                else {
+                                    Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] No Nutanix clusters detected, setting to null"
+                                    $NutanixClusters = $null
+                                }
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving SCVMM Information"
-                                $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
-                                    @{N="Hostname";E={$_.hostname}},
-                                    @{N="Run As";E={$_.runAsAccount}},
-                                    @{N="Connection Status";E={$_.status}}
+                                if ($null -ne $SCVMMServers -and 0 -ne $SCVMMServers[0].total) {
+                                    $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
+                                        @{N="Hostname";E={$_.hostname}},
+                                        @{N="Run As";E={$_.runAsAccount}},
+                                        @{N="Connection Status";E={$_.status}}
+                                }
+                                else {
+                                    Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] No SCVMM hosts detected, setting to null"
+                                    $SCVMMServers = $null
+                                }
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Windows Hosts Information"
-                                $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" | Select @{N="Name";E={$_.name}},
-                                    @{N="Hostname";E={$_.hostname}},
-                                    @{N="Operating System";E={$_.operatingSystem}},
-                                    @{N="Connection Status";E={$_.status}}
+                                if ($null -ne $WindowsHosts -and 0 -ne $WindowsHosts[0].total) {
+                                    $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" | Select @{N="Name";E={$_.name}},
+                                        @{N="Hostname";E={$_.hostname}},
+                                        @{N="Operating System";E={$_.operatingSystem}},
+                                        @{N="Connection Status";E={$_.status}}
+                                }
+                                else {
+                                    Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] No Windows hosts detected, setting to null"
+                                    $WindowsHosts = $null
+                                }
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Linux Hosts Information"
+                                if ($null -ne $LinuxHosts -and 0 -ne $LinuxHosts[0].total) {
                                 $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Operating System";E={$_.operatingSystem}},
                                     @{N="Connection Status";E={$_.status}}
+                                }
+                                else {
+                                    Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] No Linux hosts detected, setting to null"
+                                    $LinuxHosts = $null
+                                }
                             }
                             else {
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving vCenter Information"
@@ -422,18 +453,31 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{Name="Connection Message"; Expression={$_.connectionStatus.message}},
                                     @{N="Certificate";E={$_.caCerts}}
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Nutanix Information"
+                                if ($null -ne $NutanixClusters -and 0 -ne $NutanixClusters[0].total) {
                                 $NutanixClusters = Get-RubrikNutanixCluster -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Username";E={$_.username}},
                                     @{Name="Connection Status"; Expression={$_.connectionStatus.status}},
                                     @{N="Certificate";E={$_.caCerts}}
+                                }
+                                else {
+                                    Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] No Nutanix clusters detected, setting to null"
+                                    $NutanixClusters = $null
+                                }
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving SCVMM Information"
+                                if ($null -ne $SCVMMServers -and 0 -ne $SCVMMServers[0].total) {
                                 $SCVMMServers = Get-RubrikScvmm -PrimaryClusterId "local" -DetailedObject | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Run As";E={$_.runAsAccount}},
                                     @{N="Connection Status";E={$_.status}},
                                     @{N="Deploy Agent";E={$_.shouldDeployAgent}}
-                                Write-Verbose -message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Windows Hosts Informatoin"
+                                }
+                                else {
+                                    Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] No SCVMM hosts detected, setting to null"
+                                    $SCVMMServers = $null
+                                }
+                                Write-Verbose -message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Windows Hosts Information"
+                                if ($null -ne $WindowsHosts -and 0 -ne $WindowsHosts[0].total) {
                                 $WindowsHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Windows" -DetailedObject  | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Operating System";E={$_.operatingSystem}},
@@ -446,7 +490,13 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="VFD Driver State";E={$_.hostVfdDriverState}},
                                     @{N="VFD Enabled";E={$_.hostVfdEnabled}},
                                     @{N="Is Relic";E={$_.isRelic}}
+                                }
+                                else {
+                                    Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] No Windows hosts detected, setting to null"
+                                    $WindowsHosts = $null
+                                }
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Linux Hosts Information"
+                                if ($null -ne $LinuxHosts -and 0 -ne $LinuxHosts[0].total) {
                                 $LinuxHosts = Get-RubrikHost -PrimaryClusterId "local" -Type "Linux" -DetailedObject | Select @{N="Name";E={$_.name}},
                                     @{N="Hostname";E={$_.hostname}},
                                     @{N="Operating System";E={$_.operatingSystem}},
@@ -459,6 +509,11 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{N="VFD Driver State";E={$_.hostVfdDriverState}},
                                     @{N="VFD Enabled";E={$_.hostVfdEnabled}},
                                     @{N="Is Relic";E={$_.isRelic}}
+                                }
+                                else {
+                                    Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] No Linux hosts detected, setting to null"
+                                    $LinuxHosts = $null
+                                }
                             }
 
 
