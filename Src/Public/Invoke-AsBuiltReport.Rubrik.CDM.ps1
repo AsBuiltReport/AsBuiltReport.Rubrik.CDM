@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     .DESCRIPTION
         Documents the configuration of the Rubrik CDM in Word/HTML/XML/Text formats using PScribo.
     .NOTES
-        Version:        0.0.5
+        Version:        0.0.6
         Author:         Mike Preston
         Twitter:        @mwpreston
         Github:         mwpreston

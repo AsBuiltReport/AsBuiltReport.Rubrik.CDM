@@ -2,12 +2,15 @@
 
 ## Unreleased
 
+## [0.0.6]
+
 ### Modified
 
 * Added more null checks around level 3 and 5 protected objects
 * Updated readme to reflect verbose logging
 * Fixed version numbering to reflect more dev
 * Fixed changelog formatting
+* Increase version
 
 ## [0.0.5] 2020-03-05
 
