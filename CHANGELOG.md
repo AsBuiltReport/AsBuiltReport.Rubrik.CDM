@@ -5,6 +5,7 @@
 ### Modified
 
 * Added more null checks around level 3 and 5 protected objects
+* Updated readme to reflect verbose logging
 
 ## [0.0.5] 2020-03-05
 
