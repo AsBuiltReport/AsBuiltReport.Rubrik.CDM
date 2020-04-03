@@ -1,5 +1,11 @@
 # Rubrik CDM As Built Report Changelog
 
+## Unreleased
+
+### Modified
+
+* Added more null checks around level 3 and 5 protected objects
+
 ## [1.0.0] 2020-03-05
 
 ### Added
