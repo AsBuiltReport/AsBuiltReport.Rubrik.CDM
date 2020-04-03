@@ -851,7 +851,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                                     "Yearly" { $QuarterRetention = "$($SLADomain.frequencies.quarterly.retention) Year(s)" }
                                                 }
                                                 $quarterly = [ordered]@{
-                                                    'Take backups every' = "$($SLADomain.frequencies.quarterly.frequency) Quarter(s) on $QuarterStart beggining in $QuarterMonthStart"
+                                                    'Take backups every' = "$($SLADomain.frequencies.quarterly.frequency) Quarter(s) on $QuarterStart begining in $QuarterMonthStart"
                                                     'Retain backups for' = $QuarterRetention
                                                 }
                                                 $SLAFrequency += [pscustomobject]$quarterly
@@ -867,7 +867,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                                 #Yearly time unit is always years
                                                 $YearlyRetention = "$($SLADomain.frequencies.yearly.retention) Year(s)"
                                                 $yearly = [ordered]@{
-                                                    'Take backups every' = "$($SLADomain.frequencies.yearly.frequency) Year(s) on $YearStart beggining in $YearMonthStart"
+                                                    'Take backups every' = "$($SLADomain.frequencies.yearly.frequency) Year(s) on $YearStart begining in $YearMonthStart"
                                                     'Retain backups for' = $YearlyRetention
                                                 }
                                                 $SLAFrequency += [pscustomobject]$yearly
