@@ -10,6 +10,7 @@
 
 ### Modified
 
+* Added SLA Backup Windows and fixed SLA Frequency detection of advancedUiConfig
 * Added more null checks around level 3 and 5 protected objects
 * Updated readme to reflect verbose logging
 * Fixed version numbering to reflect more dev

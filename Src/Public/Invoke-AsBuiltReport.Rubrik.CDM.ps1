@@ -781,7 +781,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     }
                                     Section -Style Heading4 "SLA Frequency Settings" {
                                         Write-Verbose -Message "[Rubrik] [$($brik)] [SLA Domains] Retrieving SLA Domain Frequency Information"
-                                        if ($null -ne $SLADomain.advancedUiConfig) {
+                                        if ($null -ne $SLADomain.advancedUiConfig -and '' -ne $SLADomain.advancedUiConfig) {
                                             $SLAFrequency = @()
 
                                             if ($null -ne $SLADomain.frequencies.hourly.retention) {
@@ -911,6 +911,65 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                         }
                                         Write-Verbose -Message "[Rubrik] [$($brik)] [SLA Domains] Output SLA Domain Frequency Settings"
                                         $SLAFrequency | Table -Name "SLA Frequencies" -Columns 'Take backups every','Retain backups for'
+                                    }
+                                    Section -Style Heading4 "SLA Backup Window" {
+                                        if ($SLADomain.allowedBackupWindows) {
+                                            $starthour = $SLADomain.allowedBackupWindows.startTimeAttributes.hour
+                                            $startminutes = $SLADomain.allowedBackupWindows.startTimeAttributes.minutes
+                                            if (0 -eq $startminutes) { $startminutes = "00"}
+
+                                            $startdatetime = Get-Date -Date "1978-10-04 $starthour`:$startminutes"
+                                            $enddatetime = $startDatetime.AddHours($SLADomain.allowedBackupWindows.durationInHours)
+
+                                            $backupWindowString = "From " + $startdatetime.TOString("h:mm tt") + " to " + $enddatetime.TOString("h:mm tt")
+                                        }
+                                        else {
+                                            $backupWindowString = "No backup window defined"
+                                        }
+
+
+                                        if ($firstFullAllowedBackupWindows) {
+
+
+                                        }
+                                        else {
+                                            $firstFullString = "First Opportunity"
+                                        }
+
+                                        if ($SLADomain.firstFullAllowedBackupWindows) {
+
+                                            $startday = $SLADomain.firstFullAllowedBackupWindows.startTimeAttributes.dayOfWeek
+                                            $starthour = $SLADomain.firstFullAllowedBackupWindows.startTimeAttributes.hour
+                                            $startminutes = $SLADomain.firstFullAllowedBackupWindows.startTimeAttributes.minutes
+                                            if (0 -eq $startminutes) { $startminutes = "00"}
+
+                                            switch ($startday) {
+                                                1 {$startday = "Sunday"}
+                                                2 {$startday = "Monday"}
+                                                3 {$startday = "Tuesday"}
+                                                4 {$startday = "Wednesday"}
+                                                5 {$startday = "Thursday"}
+                                                6 {$startday = "Friday"}
+                                                7 {$startday = "Saturday"}
+                                            }
+
+                                            $startdate = @(@(0..7) | % {$(Get-Date).AddDays($_)} | ? {$_.DayOfWeek -ieq "$startday"})[0]
+
+                                            $startdate = Get-Date -Date "$($startdate.Year)-$($startdate.month)-$($startdate.day) $starthour`:$startminutes"
+                                            $enddate = $startdate.addHours($SLADomain.firstFullAllowedBackupWindows.durationinHours)
+                                            $firstFullString = "Between " + $startdate.DayOfWeek + " at "  + $startdate.ToString("h:mm tt") + " and " + $enddate.DayOfWeek + " at " + $enddate.TOString("h:mm tt")
+
+                                        }
+                                        else {
+                                            $firstFullString = "First Opportunity"
+                                        }
+
+                                        $BackupWindows = @{
+                                            'Backup Window' = "$backupWindowString"
+                                            'Take First Full' = "$firstFullString"
+                                        }
+                                        Write-Verbose -Message "[Rubrik] [$($brik)] [SLA Domains] Output SLA Domain Backup Windows"
+                                        [pscustomobject]$BackupWindows | Table -Name "SLA Backup Windows" -Columns "Backup Window", "Take First Full" -List
                                     }
                                     Section -Style Heading4 "SLA Archival Settings" {
                                         if ($null -ne $SLADomain.archivalSpecs.locationId) {
