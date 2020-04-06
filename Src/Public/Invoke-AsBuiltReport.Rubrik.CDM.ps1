@@ -217,9 +217,9 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Section -Style Heading4 'Email Settings' {
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Email Information"
                                 $EmailDetails = Get-RubrikEmailSetting
-                                if ($EmailDetails.Length -gt 0) {
+                                if (0 -ne ($EmailDetails | Measure-Object).count ) {
                                     Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Output Email Settings"
-                                    $EmailDetails | Table -Name 'Email Details' -Columns id,smtpHostname,smtpPort,smtpUsername,fromEmailId,smtpSecurity -Headers 'ID','SMTP Server','Port','Username','From Email','Security'
+                                    $EmailDetails | Table -Name 'Email Details'
                                 }
                                 else { Paragraph "There are currently no email settings configured on this cluster"}
                             }
