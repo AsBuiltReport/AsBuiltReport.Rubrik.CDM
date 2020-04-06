@@ -203,7 +203,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             Section -Style Heading4 'Proxy Server' {
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Proxy Information"
                                 $ProxyDetails = Get-RubrikProxySetting
-                                if ($ProxyDetails.length -gt 0) {
+                                if (0 -ne ($ProxyDetails | Measure-Object).count) {
                                     Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Output Proxy Settings"
                                     $ProxyDetails | Table -Name 'Proxy Configuration'
                                 }
