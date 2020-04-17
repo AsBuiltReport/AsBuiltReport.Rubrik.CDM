@@ -1,12 +1,13 @@
 # Rubrik CDM As Built Report Changelog
 
-## Unreleased
+## [0.0.7] - 2020-04-17
 
 ### Modified
 
 * Null checks on backup sources
+* Increased and made version consistent across files
 
-## [0.0.6]
+## [0.0.6] - 2020-03-28
 
 ### Modified
 
