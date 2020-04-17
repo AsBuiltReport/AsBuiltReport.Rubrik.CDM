@@ -1,15 +1,16 @@
 # Rubrik CDM As Built Report
 
 # Getting Started
+
 Below are the instructions on how to install, configure, and generate a Rubrik CDM As Built report.
 
 ## Pre-requisites
+
 The following PowerShell modules are required for generating a Rubrik As Built report.
 
 Each of these modules can be easily downloaded and installed via the PowerShell Gallery
 
 - [Rubrik CDM Powershell SDK](https://www.powershellgallery.com/packages/Rubrik/)
-    *Note:* The Rubrik As Built Report Module currently relies on the `devel` branch of the Rubrik PowerShell SDK. Follow the instructions below to ensure the `devel` branch is the active installation.
 - [AsBuiltReport Module](https://www.powershellgallery.com/packages/AsBuiltReport/)
 
 ### Module Installation
