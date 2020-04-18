@@ -104,7 +104,7 @@ There are 4 levels (0/1/3/5) of detail granularity for each section as follows;
 | Setting | InfoLevel | Description |
 | ------- | ---- | ----------- |
 | 0 | Disabled | does not collect or display any information
-| 1 | Summary** | provides summarized information for a collection of objects
+| 1 | Summary | provides summarized information for a collection of objects
 | 2 | Unused | reserved for future use
 | 3 | Detailed | provides detailed information for individual objects
 | 4 | Unused | reserved for future use
