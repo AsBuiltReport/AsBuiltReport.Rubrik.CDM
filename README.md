@@ -1,5 +1,19 @@
 # Rubrik CDM As Built Report
 
+## Sample Reports
+
+### Sample Report 1 - Default Style
+
+Sample Rubrik report using default report style
+
+![](Samples/Rubrik-Report-1.png)
+
+### Sample Report 2 - Custom Style
+
+Sample Rubrik report using custom report styles
+
+![](Samples/Rubrik-Report-2.png)
+
 # Getting Started
 
 Below are the instructions on how to install, configure, and generate a Rubrik CDM As Built report.
