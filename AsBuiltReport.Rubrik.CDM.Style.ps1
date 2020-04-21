@@ -38,7 +38,7 @@ $TableDefaultProperties = @{
 TableStyle @TableDefaultProperties -Default
 TableStyle -Id 'Borderless' -BorderWidth 0
 
-# VMware Cover Page Layout
+# Cover Page Layout
 # Set position of report titles and information based on page orientation
 if ($Orientation -eq 'Portrait') {
     BlankLine -Count 11
