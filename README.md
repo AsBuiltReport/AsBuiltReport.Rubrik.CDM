@@ -1,3 +1,24 @@
+<p align="center">
+    <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PowerShell Gallery Version">
+        <img src="https://img.shields.io/powershellgallery/v/AsBuiltReport.Rubrik.CDM.svg" /></a>
+    <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PS Gallery Downloads">
+        <img src="https://img.shields.io/powershellgallery/dt/AsBuiltReport.Rubrik.CDM.svg" /></a>
+    <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PS Platform">
+        <img src="https://img.shields.io/powershellgallery/p/AsBuiltReport.Rubrik.CDM.svg" /></a>
+</p>
+<p align="center">
+    <a href="https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/graphs/commit-activity" alt="GitHub Last Commit">
+        <img src="https://img.shields.io/github/last-commit/AsBuiltReport/AsBuiltReport.Rubrik.CDM/master.svg" /></a>
+    <a href="https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/master/LICENSE" alt="GitHub License">
+        <img src="https://img.shields.io/github/license/AsBuiltReport/AsBuiltReport.Rubrik.CDM.svg" /></a>
+    <a href="https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/graphs/contributors" alt="GitHub Contributors">
+        <img src="https://img.shields.io/github/contributors/AsBuiltReport/AsBuiltReport.Rubrik.CDM.svg"/></a>
+</p>
+<p align="center">
+    <a href="https://twitter.com/AsBuiltReport" alt="Twitter">
+            <img src="https://img.shields.io/twitter/follow/AsBuiltReport.svg?style=social"/></a>
+</p>
+
 # Rubrik CDM As Built Report
 
 ## Sample Reports
