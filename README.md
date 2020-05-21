@@ -1,3 +1,24 @@
+<p align="center">
+    <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PowerShell Gallery Version">
+        <img src="https://img.shields.io/powershellgallery/v/AsBuiltReport.Rubrik.CDM.svg" /></a>
+    <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PS Gallery Downloads">
+        <img src="https://img.shields.io/powershellgallery/dt/AsBuiltReport.Rubrik.CDM.svg" /></a>
+    <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PS Platform">
+        <img src="https://img.shields.io/powershellgallery/p/AsBuiltReport.Rubrik.CDM.svg" /></a>
+</p>
+<p align="center">
+    <a href="https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/graphs/commit-activity" alt="GitHub Last Commit">
+        <img src="https://img.shields.io/github/last-commit/AsBuiltReport/AsBuiltReport.Rubrik.CDM/master.svg" /></a>
+    <a href="https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/master/LICENSE" alt="GitHub License">
+        <img src="https://img.shields.io/github/license/AsBuiltReport/AsBuiltReport.Rubrik.CDM.svg" /></a>
+    <a href="https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/graphs/contributors" alt="GitHub Contributors">
+        <img src="https://img.shields.io/github/contributors/AsBuiltReport/AsBuiltReport.Rubrik.CDM.svg"/></a>
+</p>
+<p align="center">
+    <a href="https://twitter.com/AsBuiltReport" alt="Twitter">
+            <img src="https://img.shields.io/twitter/follow/AsBuiltReport.svg?style=social"/></a>
+</p>
+
 # Rubrik CDM As Built Report
 
 ## Sample Reports
@@ -119,37 +140,41 @@ The `Healthcheck` section of the Rubrik CDM As Built Report is not currently uti
 ## Examples
 
 - Generate HTML & Word reports with Timestamp
-Generate a Rubrik CDM As Built Report for a cluster named 'cluster1.domain.local' using specified credentials. Export report to HTML & DOC formats. Use default report style. Append timestamp to report filename. Save reports to 'C:\Reports\'
-```powershell
-New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -Format Html,Word -OutputPath 'C:\Reports' -Timestamp
-```
+
+  Generate a Rubrik CDM As Built Report for a cluster named 'cluster1.domain.local' using specified credentials. Export report to HTML & DOCX formats. Use default report style. Append timestamp to report filename. Save reports to 'C:\Reports\'
+   ```powershell
+   New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -Format Html,Word -OutputPath 'C:\Reports' -Timestamp
+   ```
 - Generate HTML & Text reports
-Generate a Rubrik CDM As Built Report for a cluster named 'cluster1.domain.local' using stored credentials.  Export report to HTML & Text formats. Use default report style. Save reports to 'C:\Reports'
-```powershell
-New-AsBuiltReport -Target 'cluster1.domain.local' -Credential $Creds -Report Rubrik.CDM -Format Html,Text -OutputPath 'C:\Reports'
-```
+
+  Generate a Rubrik CDM As Built Report for a cluster named 'cluster1.domain.local' using stored credentials.  Export report to HTML & Text formats. Use default report style. Save reports to 'C:\Reports'
+   ```powershell
+   New-AsBuiltReport -Target 'cluster1.domain.local' -Credential $Creds -Report Rubrik.CDM -Format Html,Text -OutputPath 'C:\Reports'
+   ```
 - Generate report with multiple Rubrik cluster using Custom Style
-Generate a single Rubrik CDM As Built Report for clusters 'cluster1.domain.local' and 'cluster2.domain.org' using specified credentials. Report exports to WORD format by default. Apply custom style to the report. Reports are saved to the user profile folder by default.
-```powershell
-New-AsBuiltReport -Target 'cluster1.domain.local','cluster2.domain.org' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -StylePath C:\Scripts\Styles\MyCustomStyle.ps1
-```
-***Note*** the Username/Password combiniation or credentials being passed/used must have administrative rights on both the `cluster1.domain.local` and `cluster2.domain.local` domains.
+
+   Generate a single Rubrik CDM As Built Report for clusters 'cluster1.domain.local' and 'cluster2.domain.org' using specified credentials. Report exports to WORD format by default. Apply custom style to the report. Reports are saved to the user profile folder by default.
+   ```powershell
+   New-AsBuiltReport -Target 'cluster1.domain.local','cluster2.domain.org' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -StylePath C:\Scripts\Styles\MyCustomStyle.ps1
+   ```
+   ***Note*** the Username/Password combiniation or credentials being passed/used must have administrative rights on both the `cluster1.domain.local` and `cluster2.domain.local` domains.
 
 - Generate HTML & Word reports, attach and send reports via e-mail
-Generate a Rubrik CDM As Built Report for the cluster named 'cluster1.domain.local' using specified credentials. Export report to HTML & DOC formats. Use default report style. Reports are saved to the user profile folder by default. Attach and send reports via e-mail.
-```powershell
-New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'domain.local' -Report Rubrik.CDM -Format Html,Word -OutputPath C:\Reports -SendEmail
-```
+
+   Generate a Rubrik CDM As Built Report for the cluster named 'cluster1.domain.local' using specified credentials. Export report to HTML & DOC formats. Use default report style. Reports are saved to the user profile folder by default. Attach and send reports via e-mail.
+   ```powershell
+   New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'domain.local' -Report Rubrik.CDM -Format Html,Word -OutputPath C:\Reports -SendEmail
+   ```
 
 - Generate Word reports using the generated JSON config
-```powershell
-New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputPath <path_to_generated_report> -ReportConfigPath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigPath <path_to_as_built_config>
-```
+   ```powershell
+   New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputPath <path_to_generated_report> -ReportConfigPath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigPath <path_to_as_built_config>
+   ```
 
 - Generate Word reports using the generated JSON config, along with verbose logging
-```powershell
-New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputPath <path_to_generated_report> -ReportConfigPath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigPath <path_to_as_built_config> -Verbose
-```
+   ```powershell
+   New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputPath <path_to_generated_report> -ReportConfigPath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigPath <path_to_as_built_config> -Verbose
+   ```
 
 ## Known Issues
 
