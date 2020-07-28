@@ -1413,11 +1413,13 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                         Paragraph ("The following displays all relic, expired, and unmanaged objects within the Rubrik cluster")
                         Write-Verbose -Message "[Rubrik] [$($brik)] [Snapshot Retention] Retrieving Unmanaged Objects"
                         $UnmanagedObjects = Get-RubrikUnmanagedObject
-                        Write-Verbose -Message "[Rubrik] [$($brik)] [Snapshot Retention] Output Unmanaged Objects"
-                        if ($InfoLevel.SnapshotRetention -in (1, 2)) {
-                            $UnmanagedObjects | Sort-Object -Property Name, objecttype | Table -Name "Unmanaged Objects" -Columns Name, objectType, retentionSlaDomainName -Headers 'Name', 'ObjectType', 'Retention SLA Domain'
-                        } elseif ($InfoLevel.SnapshotRetention -in (3, 4, 5)) {
-                            $UnmanagedObjects | Sort-Object -Property Name, objecttype | Table -Name "Unmanaged Objects" -Columns Name, objectType, retentionSlaDomainName, autoSnapshotCount, manualSnapshotCount, localStorage, archiveStorage, unmanagedStatus -Headers 'Name', 'ObjectType', 'Retention SLA Domain', 'Automatic Snapshots', 'Manual Snapshots', 'Local Storage', 'Archival Storage', 'Unmanaged Status' -List -ColumnWidths 30, 70
+                        if (($UnmanagedObjects | Measure-Object).Count -gt 0) {
+                            Write-Verbose -Message "[Rubrik] [$($brik)] [Snapshot Retention] Output Unmanaged Objects"
+                            if ($InfoLevel.SnapshotRetention -in (1, 2)) {
+                                $UnmanagedObjects | Sort-Object -Property Name, objecttype | Table -Name "Unmanaged Objects" -Columns Name, objectType, retentionSlaDomainName -Headers 'Name', 'ObjectType', 'Retention SLA Domain'
+                            } elseif ($InfoLevel.SnapshotRetention -in (3, 4, 5)) {
+                                $UnmanagedObjects | Sort-Object -Property Name, objecttype | Table -Name "Unmanaged Objects" -Columns Name, objectType, retentionSlaDomainName, autoSnapshotCount, manualSnapshotCount, localStorage, archiveStorage, unmanagedStatus -Headers 'Name', 'ObjectType', 'Retention SLA Domain', 'Automatic Snapshots', 'Manual Snapshots', 'Local Storage', 'Archival Storage', 'Unmanaged Status' -List -ColumnWidths 30, 70
+                            }
                         }
                     }
                     Write-Verbose -Message "[Rubrik] [$($brik)] [Snapshot Retention] Snapshot Retention Section Complete"
