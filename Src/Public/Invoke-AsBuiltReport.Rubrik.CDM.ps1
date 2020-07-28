@@ -382,7 +382,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 @{N = "Hostname"; E = { $_.hostname } },
                                 @{N = "Username"; E = { $_.username } }
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving vCloud Director Information"
-                                $VMwareVCD = Get-RubrikVCD | Where-Object-Object { $_.PrimaryClusterId -eq (Get-RubrikSetting).id } | Select-Object @{N = "Name"; E = { $_.name } },
+                                $VMwareVCD = Get-RubrikVCD | Where-Object { $_.PrimaryClusterId -eq (Get-RubrikSetting).id } | Select-Object @{N = "Name"; E = { $_.name } },
                                 @{N = "Hostname"; E = { $_.hostname } },
                                 @{N = "Username"; E = { $_.username } },
                                 @{Name = "Connection Status"; Expression = { $_.connectionStatus.status } }
