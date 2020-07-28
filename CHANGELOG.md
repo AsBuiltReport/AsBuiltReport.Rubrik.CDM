@@ -1,5 +1,10 @@
 # Rubrik CDM As Built Report Changelog
 
+### Modified
+
+* Added count check on Snapshot retention
+* Removed duplicate Object cmd on vCloud Director section
+
 ## [0.0.7] - 2020-04-17
 
 ### Modified
