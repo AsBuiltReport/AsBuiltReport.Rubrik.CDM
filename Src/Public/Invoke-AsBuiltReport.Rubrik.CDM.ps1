@@ -433,7 +433,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 @{N = "Username"; E = { $_.username } },
                                 @{Name = "VM Linking"; Expression = { $_.conflictResolutionAuthz } },
                                 @{Name = "Certificate"; E = { $_.caCerts } }
-                                Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving vCloud Directory Information"
+                                Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving vCloud Director Information"
                                 $VMwareVCD = Get-RubrikVCD | Where-Object { $_.PrimaryClusterId -eq (Get-RubrikSetting).id } | Select-Object @{N = "Name"; E = { $_.name } },
                                 @{N = "Hostname"; E = { $_.hostname } },
                                 @{N = "Username"; E = { $_.username } },
@@ -1089,12 +1089,18 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             @{N = "SID"; E = { $_.sid } }, @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } },
                             @{N = "Assignment Type"; E = { $_.slaAssignment } }
                             Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected Filesets "
-                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
-                            @{N = "Operating System"; E = { $_.operatingSystemType } }, @{N = "Fileset Name"; E = { $_.name } },
-                            @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }
+                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId }
+                            if ($null -ne $Filesets -and 0 -ne $Filesets[0].total ) {
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
+                                @{N = "Operating System"; E = { $_.operatingSystemType } }, @{N = "Fileset Name"; E = { $_.name } },
+                                @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }
+                            }
                             Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected NAS Shares "
-                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
-                            @{N = "Fileset Name"; E = { $_.name } }, @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }
+                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId }
+                            if ($null -ne $NasShares -and 0 -ne $NasShares[0].total) {
+                                $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
+                                @{N = "Fileset Name"; E = { $_.name } }, @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }
+                            }
                             Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected Volume Groups "
                             $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
                             @{N = "Volume Group name"; E = { $_.name } }, @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } },
@@ -1163,16 +1169,31 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 Write-Verbose -Message "No Oracle DBs detected, setting to null"
                                 $OracleDatabases = $null
                             }
-                            Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected Filesets "
-                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
-                            @{N = "Operating System"; E = { $_.operatingSystemType } }, @{N = "Fileset Name"; E = { $_.name } },
-                            @{N = "Includes"; E = { $_.includes | Out-String } }, @{N = "Excludes"; E = { $_.excludes | Out-String } },
-                            @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }
-                            Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected NAS Shares "
-                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
-                            @{N = "Operating System"; E = { $_.operatingSystemType } } , @{N = "Fileset Name"; E = { $_.name } },
-                            @{N = "Includes"; E = { $_.includes | Out-String } }, @{N = "Excludes"; E = { $_.excludes | Out-String } },
-                            @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }
+
+                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId }
+                            if ($null -ne $Filesets -and 0 -ne $Filesets[0].total) {
+                                Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected Filesets "
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
+                                @{N = "Operating System"; E = { $_.operatingSystemType } }, @{N = "Fileset Name"; E = { $_.name } },
+                                @{N = "Includes"; E = { $_.includes | Out-String } }, @{N = "Excludes"; E = { $_.excludes | Out-String } },
+                                @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }
+                            }
+                            else {
+                                Write-Verbose -Message "No Filesets detected, setting to null"
+                                $Filesets = $null
+                            }
+                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local | Where-object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId }
+                            if ($null -ne $NasShares -and 0 -ne $NasShares[0].total) {
+                                Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected NAS Shares "
+                                $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
+                                @{N = "Operating System"; E = { $_.operatingSystemType } } , @{N = "Fileset Name"; E = { $_.name } },
+                                @{N = "Includes"; E = { $_.includes | Out-String } }, @{N = "Excludes"; E = { $_.excludes | Out-String } },
+                                @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }
+                            }
+                            else {
+                                Write-Verbose "No NAS Shares detected, setting to null"
+                                $NasShares = $null
+                            }
                             Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected Volume Groups "
                             $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local
                             if ($null -ne $VolumeGroups -and 0 -ne $VolumeGroups[0].total) {
@@ -1276,20 +1297,35 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] No Oracle DBs detected, setting to null"
                                 $OracleDatabases = $null
                             }
-                            Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected Filesets "
-                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
-                            @{N = "Operating System"; E = { $_.operatingSystemType } }, @{N = "Fileset Name"; E = { $_.name } },
-                            @{N = "Includes"; E = { $_.includes | Out-String } }, @{N = "Excludes"; E = { $_.excludes | Out-String } },
-                            @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }, @{N = "Snapshot Count"; E = { $_.snapshotCount } },
-                            @{N = "Oldest Backup"; E = { (Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select-Object -First 1).date } },
-                            @{N = "Latest Backup"; E = { (Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select-Object -Last 1).date } }
-                            Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected NAS Share s"
-                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
-                            @{N = "Operating System"; E = { $_.operatingSystemType } }, @{N = "Fileset Name"; E = { $_.name } },
-                            @{N = "Includes"; E = { $_.includes | Out-String } }, @{N = "Excludes"; E = { $_.excludes | Out-String } },
-                            @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }, @{N = "Snapshot Count"; E = { $_.snapshotCount } },
-                            @{N = "Oldest Backup"; E = { (Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select-Object -First 1).date } },
-                            @{N = "Latest Backup"; E = { (Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select-Object -Last 1).date } }
+                            $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local  | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId }
+                            if ($null -ne $filesets -and 0 -ne $Filesets[0].total) {
+                                Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected Filesets "
+                                $Filesets = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -eq $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
+                                @{N = "Operating System"; E = { $_.operatingSystemType } }, @{N = "Fileset Name"; E = { $_.name } },
+                                @{N = "Includes"; E = { $_.includes | Out-String } }, @{N = "Excludes"; E = { $_.excludes | Out-String } },
+                                @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }, @{N = "Snapshot Count"; E = { $_.snapshotCount } },
+                                @{N = "Oldest Backup"; E = { (Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select-Object -First 1).date } },
+                                @{N = "Latest Backup"; E = { (Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select-Object -Last 1).date } }
+                            }
+                            else {
+                                Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] No Filesets detected, setting to null"
+                                $Filesets = $null
+                            }
+                            $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local  | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId }
+                            if ($null -ne $NasShares -and 0 -ne $NasShares[0].total ) {
+                                Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected NAS Share s"
+                                $NasShares = Get-RubrikFileset -Relic:$false -PrimaryClusterID local -DetailedObject | Where-Object { $_.effectiveSlaDomainId -ne 'Unprotected' -and $null -ne $_.shareId } | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
+                                @{N = "Operating System"; E = { $_.operatingSystemType } }, @{N = "Fileset Name"; E = { $_.name } },
+                                @{N = "Includes"; E = { $_.includes | Out-String } }, @{N = "Excludes"; E = { $_.excludes | Out-String } },
+                                @{N = "SLA Domain"; E = { $_.effectiveSlaDomainName } }, @{N = "Snapshot Count"; E = { $_.snapshotCount } },
+                                @{N = "Oldest Backup"; E = { (Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select-Object -First 1).date } },
+                                @{N = "Latest Backup"; E = { (Get-RubrikSnapshot -id $_.id | Sort-Object -Property Date | Select-Object -Last 1).date } }
+                            }
+                            else {
+                                Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] No NAS Shares detected, setting to null"
+                                $NasShares = $null
+                            }
+
                             Write-Verbose -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected Volume Groups "
                             $VolumeGroups = Get-RubrikVolumeGroup -Relic:$false -PrimaryClusterID local
                             if ($null -ne $VolumeGroups -and 0 -ne $VolumeGroups[0].total) {
