@@ -1,10 +1,14 @@
 # Rubrik CDM As Built Report Changelog
 
+## [0.0.8] - 2020-07-30
+
 ### Modified
 
 * Added count check on Snapshot retention
 * Removed duplicate Object cmd on vCloud Director section
 * Count checks now occur on both Filesets and NAS Shares before issuing -DetailedObject queries. Fixes [Issue 6](https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/issues/6)
+* Added more verbose logging around what versions of modules are installed
+* Added Rubrik to required modules in manifest
 
 ## [0.0.7] - 2020-04-17
 

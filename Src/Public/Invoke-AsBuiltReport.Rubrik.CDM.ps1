@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     .DESCRIPTION
         Documents the configuration of the Rubrik CDM in Word/HTML/XML/Text formats using PScribo.
     .NOTES
-        Version:        0.0.7
+        Version:        0.0.8
         Author:         Mike Preston
         Twitter:        @mwpreston
         Github:         mwpreston
@@ -42,6 +42,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     #---------------------------------------------------------------------------------------------#
     #                                         SCRIPT BODY                                         #
     #---------------------------------------------------------------------------------------------#
+    $CDMAsBuiltModule = Get-Module -Name "AsBuiltReport.Rubrik.CDM"
+    $AsBuiltModule = Get-Module -Name "AsBuiltReport.Core"
+    $RubrikModule = Get-Module -Name "Rubrik"
+    Write-Verbose -Message "[Rubrik] [Info] As Built Report Core Module is version $($AsBuiltModule.Version) from $($AsBuiltModule.RepositorySourceLocation)"
+    Write-Verbose -Message "[Rubrik] [Info] As Built Rubrik Module is version $($CDMAsBuiltModule.Version) from $($CDMAsBuiltModule.RepositorySourceLocation)"
+    Write-Verbose -Message "[Rubrik] [Info] Rubrik Module is version $($RubrikModule.Version) from $($RubrikModule.RepositorySourceLocation)"
     foreach ($brik in $Target) {
         try {
             Write-Verbose -Message "[Rubrik] [$($brik)] [Connection] Connecting to $($brik)"
