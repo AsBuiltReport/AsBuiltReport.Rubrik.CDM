@@ -569,14 +569,18 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             @{N = "Cluster UUID"; E = { $_.targetClusterUuid } },
                             @{N = "Replication Network Setup"; E = { $_.replicationSetup } }
                             Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Output Replication Sources"
-                            Section -Style Heading4 'Replication Sources' {
-                                Paragraph "The following table outlines locations which have been configured as a replication source to this cluster"
-                                $ReplicationSources | Table -Name 'Replication Sources'
+                            if (($ReplicationSources | Measure-Object).count -gt 0) {
+                                Section -Style Heading4 'Replication Sources' {
+                                    Paragraph "The following table outlines locations which have been configured as a replication source to this cluster"
+                                    $ReplicationSources | Table -Name 'Replication Sources'
+                                }
                             }
                             Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Output Replication Targets"
-                            Section -Style Heading4 'Replication Targets' {
-                                Paragraph "The following table outlines locations which have been configured as a replication targets for this cluster"
-                                $ReplicationTargets | Table -Name 'Replication Sources'
+                            if (($ReplicationTargets | Measure-Object).count -gt 0) {
+                                Section -Style Heading4 'Replication Targets' {
+                                    Paragraph "The following table outlines locations which have been configured as a replication targets for this cluster"
+                                    $ReplicationTargets | Table -Name 'Replication Targets'
+                                }
                             }
                         } # End Heading 3 Replication Configuration
                         Section -Style Heading3 'Archive Targets' {
@@ -590,8 +594,8 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             if ($InfoLevel.Cluster -lt 3) {
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Output S3 Targets"
                                 Section -Style Heading4 'S3 Targets' {
-                                    if ( ($ArchiveTargets | Where-Object { $_.locationType -eq 'S3' } | Measure-Object ).count -gt 0) {
-                                        $ArchiveTargets | Where-Object { $_.locationType -eq 'S3' } | Table -Name 'S3 Archives'
+                                    if ( ($ArchiveTargets | Where-Object { $_.locationType -eq 'S3' -or $_.locationType -eq 'S3Compatible' } | Measure-Object ).count -gt 0) {
+                                        $ArchiveTargets | Where-Object { $_.locationType -eq 'S3' -or $_.locationType -eq 'S3Compatible' } | Table -Name 'S3 Archives'
                                     } else { Paragraph "There are currently no S3 targets configured on the cluster." }
                                 }
                                 Write-Verbose -Message "[Rubrik] [$($brik)] [Cluster Settings] Output Glacier Targets"

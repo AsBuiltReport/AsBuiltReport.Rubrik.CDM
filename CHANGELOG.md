@@ -1,5 +1,13 @@
 # Rubrik CDM As Built Report Changelog
 
+## [0.0.9] - 2020-09-04
+
+### Modified
+
+* Added null checks to replication source and targets before outputing as per [Issue 10](https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/issues/10)
+* Added S3Compatible as archive type as per [Issue 11](https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/issues/11)
+* Increases version in changelog and manifest.
+
 ## [0.0.8] - 2020-07-30
 
 ### Modified
