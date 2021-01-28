@@ -1,5 +1,12 @@
 # Rubrik CDM As Built Report Changelog
 
+## [1.0.0]
+
+### Modified
+
+* Removed and replaced references of `Write-Verbose` with `Write-PScriboMessage`
+* Increased version in changelog and manifest
+
 ## [0.0.9] - 2020-09-04
 
 ### Modified
