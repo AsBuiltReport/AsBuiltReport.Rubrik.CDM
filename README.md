@@ -21,7 +21,7 @@
 
 # Rubrik CDM As Built Report
 
-## Sample Reports
+## :books: Sample Reports
 
 ### Sample Report 1 - Default Style
 
@@ -35,11 +35,14 @@ Sample Rubrik report using custom report styles
 
 ![](Samples/Rubrik-Report-2.png)
 
-# Getting Started
+# :beginner: Getting Started
 
 Below are the instructions on how to install, configure, and generate a Rubrik CDM As Built report.
 
-## Pre-requisites
+## :floppy_disk: Supported Versions
+* To be added
+
+## :wrench: System Requirements
 
 The following PowerShell modules are required for generating a Rubrik As Built report.
 
@@ -48,9 +51,12 @@ Each of these modules can be easily downloaded and installed via the PowerShell 
 - [Rubrik CDM Powershell SDK](https://www.powershellgallery.com/packages/Rubrik/)
 - [AsBuiltReport Module](https://www.powershellgallery.com/packages/AsBuiltReport/)
 
-### Module Installation
+### :closed_lock_with_key: Required Privileges
 
-#### Installing the Rubrik SDK for PowerShell
+In order to generate a Rubrik CDM As Built Report, user credentials with the administrator role are required. The use of non-administrative credentials may produce incomplete results.
+## :package: Module Installation
+
+### Installing the Rubrik SDK for PowerShell
 
 1. Ensure you have the Windows Management Framework 5.0 or greater installed.
 1. Open a Powershell console with the Run as Administrator option.
@@ -58,7 +64,7 @@ Each of these modules can be easily downloaded and installed via the PowerShell 
 1. Run `Install-Module -Name Rubrik -Scope CurrentUser` to download the module from the PowerShell Gallery. Note that the first time you install from the remote repository it may ask you to first trust the repository.
 1. Alternatively `Install-Module -Name Rubrik -Scope AllUsers` can be execute be used if you would like to install the module for all users on the current system.
 
-#### Installing the As Built Report Module
+### Installing the As Built Report Module
 
 Installing the As Built Report core module with the below instructions takes care of installing all of subsidiary reports, including the Rubrik CDM core report.
 
@@ -74,11 +80,7 @@ Install-Module -Name AsBuiltReport.Vendor.Product
 e.g. Install-Module -Name AsBuiltReport.Rubrik.CDM
 ```
 
-### Required Privileges
-
-In order to generate a Rubrik CDM As Built Report, user credentials with the administrator role are required. The use of non-administrative credentials may produce incomplete results.
-
-### Configuration
+## :pencil2: Configuration
 
 The Rubrik CDM As Built Report utilises a JSON file to allow configuration of report information, options, detail and healthchecks.
 
@@ -97,11 +99,15 @@ The following provides information of how to configure each schema within the re
 
 The **Report** sub-schema provides configuration of the vSphere report information
 
-| Schema | Sub-Schema | Description |
-| ------ | ---------- | ----------- |
-| Report | Name | The name of the As Built Report
-| Report | Version | The report version
-| Report | Status | The report release status
+| Sub-Schema          | Setting      | Default                    | Description                                                  |
+|---------------------|--------------|----------------------------|--------------------------------------------------------------|
+| Name                | User defined | Rubrik CDM As Built Report | The name of the As Built Report                              |
+| Version             | User defined | 1.0                        | The report version                                           |
+| Status              | User defined | Released                   | The report release status                                    |
+| ShowCoverPageImage  | true / false | true                       | Toggle to enable/disable the display of the cover page image |
+| ShowTableOfContents | true / false | true                       | Toggle to enable/disable table of contents                   |
+| ShowHeaderFooter    | true / false | true                       | Toggle to enable/disable document headers & footers          |
+| ShowTableCaptions   | true / false | true                       | Toggle to enable/disable table captions/numbering            |
 
 ### Options
 
@@ -113,49 +119,50 @@ Currently the Rubrik CDM As Built Report does not utlize this section.
 
 The **InfoLevel** sub-schema allows configuration of each section of the report at a granular level. The following sections can be set
 
-| Schema | Sub-Schema | Default Setting |
-| ------ | ---------- | --------------- |
-| InfoLevel | Cluster | 3
-| InfoLevel | SLADomains | 3
-| InfoLevel | ProtectedObjects | 3
-| InfoLevel | SnapshotRetention | 3
-
 There are 4 levels (0/1/3/5) of detail granularity for each section as follows;
 
-| Setting | InfoLevel | Description |
-| ------- | ---- | ----------- |
-| 0 | Disabled | does not collect or display any information
-| 1 | Summary | provides summarized information for a collection of objects
-| 2 | Unused | reserved for future use
-| 3 | Detailed | provides detailed information for individual objects
-| 4 | Unused | reserved for future use
-| 5 | Comprehensive | provides comprehensive information for individual objects, such as advanced configuration settings
+| Setting | InfoLevel     | Description                                                                                        |
+|---------|---------------|----------------------------------------------------------------------------------------------------|
+| 0       | Disabled      | Does not collect or display any information                                                        |
+| 1       | Summary       | Provides summarized information for a collection of objects                                        |
+| 2       | Unused        | Reserved for future use                                                                            |
+| 3       | Detailed      | Provides detailed information for individual objects                                               |
+| 4       | Unused        | Reserved for future use                                                                            |
+| 5       | Comprehensive | Provides comprehensive information for individual objects, such as advanced configuration settings |
 
 ***Note*** While you can specify InfoLevels of 2 and 4, they will simply default to the closest defined level below them. IE 2 becomes 1 and 4 becomes 3.
 
+The table below outlines the default and maximum **InfoLevel** settings for each section.
+
+| Sub-Schema        | Default Setting | Maximum Setting |
+|-------------------|-----------------|:---------------:|
+| Cluster           | 3               |                 |
+| SLADomains        | 3               |                 |
+| ProtectedObjects  | 3               |                 |
+| SnapshotRetention | 3               |                 |
 ### Healthchecks
 
 The `Healthcheck` section of the Rubrik CDM As Built Report is not currently utilized.
 
-## Examples
+## :computer: Examples
 
 - Generate HTML & Word reports with Timestamp
 
   Generate a Rubrik CDM As Built Report for a cluster named 'cluster1.domain.local' using specified credentials. Export report to HTML & DOCX formats. Use default report style. Append timestamp to report filename. Save reports to 'C:\Reports\'
    ```powershell
-   New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -Format Html,Word -OutputPath 'C:\Reports' -Timestamp
+   New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -Format Html,Word -OutputFolderPath 'C:\Reports' -Timestamp
    ```
 - Generate HTML & Text reports
 
   Generate a Rubrik CDM As Built Report for a cluster named 'cluster1.domain.local' using stored credentials.  Export report to HTML & Text formats. Use default report style. Save reports to 'C:\Reports'
    ```powershell
-   New-AsBuiltReport -Target 'cluster1.domain.local' -Credential $Creds -Report Rubrik.CDM -Format Html,Text -OutputPath 'C:\Reports'
+   New-AsBuiltReport -Target 'cluster1.domain.local' -Credential $Creds -Report Rubrik.CDM -Format Html,Text -OutputFolderPath 'C:\Reports'
    ```
 - Generate report with multiple Rubrik cluster using Custom Style
 
    Generate a single Rubrik CDM As Built Report for clusters 'cluster1.domain.local' and 'cluster2.domain.org' using specified credentials. Report exports to WORD format by default. Apply custom style to the report. Reports are saved to the user profile folder by default.
    ```powershell
-   New-AsBuiltReport -Target 'cluster1.domain.local','cluster2.domain.org' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -StylePath C:\Scripts\Styles\MyCustomStyle.ps1
+   New-AsBuiltReport -Target 'cluster1.domain.local','cluster2.domain.org' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -StyleFilePath C:\Scripts\Styles\MyCustomStyle.ps1
    ```
    ***Note*** the Username/Password combiniation or credentials being passed/used must have administrative rights on both the `cluster1.domain.local` and `cluster2.domain.local` domains.
 
@@ -163,20 +170,20 @@ The `Healthcheck` section of the Rubrik CDM As Built Report is not currently uti
 
    Generate a Rubrik CDM As Built Report for the cluster named 'cluster1.domain.local' using specified credentials. Export report to HTML & DOC formats. Use default report style. Reports are saved to the user profile folder by default. Attach and send reports via e-mail.
    ```powershell
-   New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'domain.local' -Report Rubrik.CDM -Format Html,Word -OutputPath C:\Reports -SendEmail
+   New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'domain.local' -Report Rubrik.CDM -Format Html,Word -OutputFolderPath C:\Reports -SendEmail
    ```
 
 - Generate Word reports using the generated JSON config
    ```powershell
-   New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputPath <path_to_generated_report> -ReportConfigPath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigPath <path_to_as_built_config>
+   New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputFolderPath <path_to_generated_report> -ReportConfigFilePath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigFilePath <path_to_as_built_config>
    ```
 
 - Generate Word reports using the generated JSON config, along with verbose logging
    ```powershell
-   New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputPath <path_to_generated_report> -ReportConfigPath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigPath <path_to_as_built_config> -Verbose
+   New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputFolderPath <path_to_generated_report> -ReportConfigFilePath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigFilePath <path_to_as_built_config> -Verbose
    ```
 
-## Known Issues
+## :exclamation: Known Issues
 
 - InfoLevel 3 and above causes "User Not Found" messages to be displayed on the console.
   - While not a show stopper, when running the Rubrik CDM As Built Report with Cluster Info Level of 3 or higher User not found messages are shown in the console. This is the result of Rubrik trying to query deeper information about users who no longer have an LDAP Account within the system. Reports continue to generate regardless of the error shown.
