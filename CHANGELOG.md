@@ -1,9 +1,13 @@
 # Rubrik CDM As Built Report Changelog
 
-## [1.0.0]
+## [1.0.0] - 2021-01-29
+
+### Added
+* Added report style options to report configuration JSON
 
 ### Modified
 
+* Modified default style to include headers, footers, table captions and cover page logo
 * Removed and replaced references of `Write-Verbose` with `Write-PScriboMessage`
 * Increased version in changelog and manifest
 
