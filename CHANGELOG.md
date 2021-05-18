@@ -1,5 +1,17 @@
 # Rubrik CDM As Built Report Changelog
 
+## [1.0.1]
+
+### Added
+
+* Added null check on SMB Domain information
+* Added null check on Syslog Information
+* Added null check on Guest OS Credentials Information
+
+### Modified
+
+* Modified null check on VMware VMs protected objects section as it was trying to index a null array
+
 ## [1.0.0] - 2021-01-29
 
 ### Added

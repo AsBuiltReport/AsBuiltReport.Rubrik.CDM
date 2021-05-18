@@ -374,7 +374,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $GuestOSCredentials = Get-RubrikGuestOsCredential | Select-Object -Property @{N = "Username"; E = { $_.username } },
                                 @{N = "Domain"; E = { $_.domain } }
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Output Guest OS Credentials"
-                                $GuestOSCredentials | Table -Name 'Guest OS Credentials' -ColumnWidths 50, 50
+                                if ($null -eq $GuestOSCredentials) {
+                                    Paragraph "No Guest OS Credentials configured"
+                                } else {
+                                    $GuestOSCredentials | Table -Name 'Guest OS Credentials' -ColumnWidths 50, 50
+                                }
+
                             }
                             Section -Style Heading4 'Miscellaneous Backup Configurations' {
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Miscellaneous Backup Settings"
@@ -1241,7 +1246,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             #Applies to VMware VMs, HyperV, Nutanix, MSSQL, Oracle, VolumeGroups below
                             Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected VMware VMs "
                             $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local'
-                            if (0 -ne $VMwareVMs[0].total) {
+                            if ($null -ne $VMwareVMs) {
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Protected Objects] VMware VMs detected, gathering additional details "
                                 $VMwareVMs = $VMwareVMs | Where-Object { $_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach-Object { Get-RubrikVM -id $_.id | Select-Object -Property @{N = "Name"; E = { $_.name } },
                                     @{N = "IP Address"; E = { $_.ipAddress } }, @{N = "Guest OS"; E = { $_.guestOsType } },
