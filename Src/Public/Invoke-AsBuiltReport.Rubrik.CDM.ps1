@@ -290,7 +290,13 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{Name = 'Force SMB Security'; Expression = { $SMBSecurityInformation.enforceSmbSecurity } }
                                 }
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Output SMB Domains"
-                                $SMBDomainInformation | Table -Name 'SMB Domains'
+                                # Currently Get-RubrikSMBDomain has the possiblity of being null so we must check here
+                                if ($null -eq $SMBDomainInformation) {
+                                    Paragraph "No SMB Domain Information Configured"
+                                }
+                                else {
+                                    $SMBDomainInformation | Table -Name 'SMB Domains'
+                                }
                             }
 
                             Section -Style Heading4 'Syslog Settings' {
@@ -298,7 +304,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $SyslogInformation = Get-RubrikSyslogServer | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
                                 @{N = "Protocol"; E = { $_.protocol } }, @{N = "Port"; E = { $_.port } }
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Ouput Syslog Settings"
-                                $SyslogInformation | Table -Name 'Syslog Settings'
+                                if ($null -eq $SyslogInformation) {
+                                    Paragraph "No Syslog settings configured"
+                                } else {
+                                    $SyslogInformation | Table -Name 'Syslog Settings'
+                                }
+
                             }
 
                             Section -Style Heading4 'Security Classification Settings' {
