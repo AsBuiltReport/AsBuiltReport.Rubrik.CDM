@@ -292,7 +292,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Output SMB Domains"
                                 # Currently Get-RubrikSMBDomain has the possiblity of being null so we must check here
                                 if ($null -eq $SMBDomainInformation) {
-                                    Paragraph "No SMB Domain Information Configured"
+                                    Paragraph "No SMB Domain information configured"
                                 }
                                 else {
                                     $SMBDomainInformation | Table -Name 'SMB Domains'
