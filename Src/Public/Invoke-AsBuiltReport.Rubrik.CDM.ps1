@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     .DESCRIPTION
         Documents the configuration of the Rubrik CDM in Word/HTML/XML/Text formats using PScribo.
     .NOTES
-        Version:        1.0.0
+        Version:        1.0.1
         Author:         Mike Preston
         Twitter:        @mwpreston
         Github:         mwpreston
@@ -290,7 +290,13 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                     @{Name = 'Force SMB Security'; Expression = { $SMBSecurityInformation.enforceSmbSecurity } }
                                 }
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Output SMB Domains"
-                                $SMBDomainInformation | Table -Name 'SMB Domains'
+                                # Currently Get-RubrikSMBDomain has the possiblity of being null so we must check here
+                                if ($null -eq $SMBDomainInformation) {
+                                    Paragraph "No SMB Domain information configured"
+                                }
+                                else {
+                                    $SMBDomainInformation | Table -Name 'SMB Domains'
+                                }
                             }
 
                             Section -Style Heading4 'Syslog Settings' {
@@ -298,7 +304,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $SyslogInformation = Get-RubrikSyslogServer | Select-Object -Property @{N = "Hostname"; E = { $_.hostname } },
                                 @{N = "Protocol"; E = { $_.protocol } }, @{N = "Port"; E = { $_.port } }
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Ouput Syslog Settings"
-                                $SyslogInformation | Table -Name 'Syslog Settings'
+                                if ($null -eq $SyslogInformation) {
+                                    Paragraph "No Syslog settings configured"
+                                } else {
+                                    $SyslogInformation | Table -Name 'Syslog Settings'
+                                }
+
                             }
 
                             Section -Style Heading4 'Security Classification Settings' {
@@ -363,7 +374,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                                 $GuestOSCredentials = Get-RubrikGuestOsCredential | Select-Object -Property @{N = "Username"; E = { $_.username } },
                                 @{N = "Domain"; E = { $_.domain } }
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Output Guest OS Credentials"
-                                $GuestOSCredentials | Table -Name 'Guest OS Credentials' -ColumnWidths 50, 50
+                                if ($null -eq $GuestOSCredentials) {
+                                    Paragraph "No Guest OS Credentials configured"
+                                } else {
+                                    $GuestOSCredentials | Table -Name 'Guest OS Credentials' -ColumnWidths 50, 50
+                                }
+
                             }
                             Section -Style Heading4 'Miscellaneous Backup Configurations' {
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Cluster Settings] Retrieving Miscellaneous Backup Settings"
@@ -1230,7 +1246,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
                             #Applies to VMware VMs, HyperV, Nutanix, MSSQL, Oracle, VolumeGroups below
                             Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Protected Objects] Retrieving Protected VMware VMs "
                             $VMwareVMs = Get-RubrikVM -Relic:$false -PrimaryClusterID 'local'
-                            if (0 -ne $VMwareVMs[0].total) {
+                            if ($null -ne $VMwareVMs) {
                                 Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Protected Objects] VMware VMs detected, gathering additional details "
                                 $VMwareVMs = $VMwareVMs | Where-Object { $_.effectiveSlaDomainName -ne 'Unprotected' } | ForEach-Object { Get-RubrikVM -id $_.id | Select-Object -Property @{N = "Name"; E = { $_.name } },
                                     @{N = "IP Address"; E = { $_.ipAddress } }, @{N = "Guest OS"; E = { $_.guestOsType } },
