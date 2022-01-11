@@ -1,5 +1,10 @@
 # Rubrik CDM As Built Report Changelog
 
+## Unreleased
+
+## Changed
+* Added new `Token` parameter to support the ability to connect with an API Token
+
 ## [1.0.1]
 
 ### Added
