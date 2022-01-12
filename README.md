@@ -152,6 +152,12 @@ The `Healthcheck` section of the Rubrik CDM As Built Report is not currently uti
    ```powershell
    New-AsBuiltReport -Target 'cluster1.domain.local' -Username 'administrator@domain.local' -Password 'SuperSecret' -Report Rubrik.CDM -Format Html,Word -OutputFolderPath 'C:\Reports' -Timestamp
    ```
+- Generate HTML & Word reports using API Token authentication
+
+  Generate a Rubrik CDM As Built Report for a cluster named 'cluster1.domain.local' using specified API Token. Export report to HTML & DOCX formats. Use default report style. Append timestamp to report filename. Save reports to 'C:\Reports\'
+   ```powershell
+   New-AsBuiltReport -Target 'cluster1.domain.local' -Token '1234abcd' -Report Rubrik.CDM -Format Html,Word -OutputFolderPath 'C:\Reports' -Timestamp
+   ```
 - Generate HTML & Text reports
 
   Generate a Rubrik CDM As Built Report for a cluster named 'cluster1.domain.local' using stored credentials.  Export report to HTML & Text formats. Use default report style. Save reports to 'C:\Reports'
