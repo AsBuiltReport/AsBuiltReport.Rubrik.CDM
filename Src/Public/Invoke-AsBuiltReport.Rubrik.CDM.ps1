@@ -19,7 +19,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     param (
         [String[]] $Target,
         [PSCredential] $Credential,
-        [String]$StylePath
+        [String] $Token
     )
 
     # Import JSON Configuration for Options and InfoLevel
@@ -51,7 +51,12 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     foreach ($brik in $Target) {
         try {
             Write-PScriboMessage -Message "[Rubrik] [$($brik)] [Connection] Connecting to $($brik)"
-            $RubrikCluster = Connect-Rubrik -Server $brik -Credential $Credential -ErrorAction Stop
+            if ($Credential) {
+                $RubrikCluster = Connect-Rubrik -Server $brik -Credential $Credential -ErrorAction Stop
+            }
+            else {
+                $RubrikCluster = Connect-Rubrik -Server $brik -Token $Token -ErrorAction Stop
+            }
         } catch {
             Write-Error $_
         }

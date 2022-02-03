@@ -1,5 +1,15 @@
 # Rubrik CDM As Built Report Changelog
 
+## Unreleased
+
+### Changed
+* Added new `Token` parameter to support the ability to connect with an API Token
+* Changed Required Modules to AsBuiltReport.Core v1.2.0
+* Removed `StylePath` parameter from `Invoke-AsBuiltReport.Rubrik.CDM.ps1`
+
+### Added
+* Added GitHub workflow for release actions
+
 ## [1.0.1]
 
 ### Added
