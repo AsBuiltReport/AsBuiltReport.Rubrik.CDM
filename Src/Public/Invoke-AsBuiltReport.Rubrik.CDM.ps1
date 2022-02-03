@@ -19,8 +19,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     param (
         [String[]] $Target,
         [PSCredential] $Credential,
-        [String] $Token,
-        [String]$StylePath
+        [String] $Token
     )
 
     # Import JSON Configuration for Options and InfoLevel
