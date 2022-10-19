@@ -1,6 +1,6 @@
-# Rubrik CDM As Built Report Changelog
+# :arrows_clockwise: Rubrik CDM As Built Report Changelog
 
-## Unreleased
+## [1.0.2] - 2022-10-19
 
 ### Changed
 * Added new `Token` parameter to support the ability to connect with an API Token
@@ -9,6 +9,9 @@
 
 ### Added
 * Added GitHub workflow for release actions
+
+### Fixed
+* Fixes [#21](https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/issues/21)
 
 ## [1.0.1]
 
