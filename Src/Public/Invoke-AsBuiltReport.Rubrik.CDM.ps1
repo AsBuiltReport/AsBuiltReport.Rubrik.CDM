@@ -5,7 +5,7 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     .DESCRIPTION
         Documents the configuration of the Rubrik CDM in Word/HTML/XML/Text formats using PScribo.
     .NOTES
-        Version:        1.0.1
+        Version:        1.0.2
         Author:         Mike Preston
         Twitter:        @mwpreston
         Github:         mwpreston
@@ -25,11 +25,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
     # Import JSON Configuration for Options and InfoLevel
     $InfoLevel = $ReportConfig.InfoLevel
     $Options = $ReportConfig.Options
-
-    # If custom style not set, use default style
-    if (!$StylePath) {
-        & "$PSScriptRoot\..\..\AsBuiltReport.Rubrik.CDM.Style.ps1"
-    }
 
     #region Script Functions
     #---------------------------------------------------------------------------------------------#
