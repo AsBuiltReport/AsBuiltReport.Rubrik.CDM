@@ -1,11 +1,11 @@
 function Invoke-AsBuiltReport.Rubrik.CDM {
     <#
     .SYNOPSIS
-        PowerShell script to document the configuration of Rubrik CDM in Word/HTML/XML/Text formats
+        PowerShell script to document the configuration of Rubrik CDM in Word/HTML/Text formats
     .DESCRIPTION
-        Documents the configuration of the Rubrik CDM in Word/HTML/XML/Text formats using PScribo.
+        Documents the configuration of the Rubrik CDM in Word/HTML/Text formats using PScribo.
     .NOTES
-        Version:        1.0.2
+        Version:        1.0.3
         Author:         Mike Preston
         Twitter:        @mwpreston
         Github:         mwpreston
@@ -15,7 +15,6 @@ function Invoke-AsBuiltReport.Rubrik.CDM {
         https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM
     #>
 
-    [cmdletbinding()]
     param (
         [String[]] $Target,
         [PSCredential] $Credential,
