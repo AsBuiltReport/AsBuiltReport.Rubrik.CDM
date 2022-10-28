@@ -1,5 +1,10 @@
 # :arrows_clockwise: Rubrik CDM As Built Report Changelog
 
+## [1.0.3] - 2022-10-28
+
+### Fixed
+* Fixes [#23](https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/issues/23)
+
 ## [1.0.2] - 2022-10-19
 
 ### Changed
