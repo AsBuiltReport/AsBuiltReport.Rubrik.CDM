@@ -1,4 +1,8 @@
 <p align="center">
+    <a href="https://www.asbuiltreport.com/" alt="AsBuiltReport"></a>
+            <img src='https://github.com/AsBuiltReport.png' width="8%" height="8%" /></a>
+</p>
+<p align="center">
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PowerShell Gallery Version">
         <img src="https://img.shields.io/powershellgallery/v/AsBuiltReport.Rubrik.CDM.svg" /></a>
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PS Gallery Downloads">
