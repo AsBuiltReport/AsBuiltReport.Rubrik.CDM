@@ -1,14 +1,14 @@
 <p align="center">
-    <a href="https://www.asbuiltreport.com/" alt="AsBuiltReport"></a>
-            <img src='https://github.com/AsBuiltReport.png' width="8%" height="8%" /></a>
+    <a href="https://www.asbuiltreport.com/">
+        <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/repo-banners/AsBuiltReport.Rubrik.CDM.png" alt="AsBuiltReport.Rubrik.CDM" width="880"></a>
 </p>
 <p align="center">
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PowerShell Gallery Version">
-        <img src="https://img.shields.io/powershellgallery/v/AsBuiltReport.Rubrik.CDM.svg" /></a>
+        <img src="https://img.shields.io/powershellgallery/v/AsBuiltReport.Rubrik.CDM.svg?color=1F5FD0" /></a>
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PS Gallery Downloads">
-        <img src="https://img.shields.io/powershellgallery/dt/AsBuiltReport.Rubrik.CDM.svg" /></a>
+        <img src="https://img.shields.io/powershellgallery/dt/AsBuiltReport.Rubrik.CDM.svg?color=012456" /></a>
     <a href="https://www.powershellgallery.com/packages/AsBuiltReport.Rubrik.CDM/" alt="PS Platform">
-        <img src="https://img.shields.io/powershellgallery/p/AsBuiltReport.Rubrik.CDM.svg" /></a>
+        <img src="https://img.shields.io/powershellgallery/p/AsBuiltReport.Rubrik.CDM.svg?color=FFD02B" /></a>
 </p>
 <p align="center">
     <a href="https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/graphs/commit-activity" alt="GitHub Last Commit">
@@ -16,16 +16,10 @@
     <a href="https://raw.githubusercontent.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/master/LICENSE" alt="GitHub License">
         <img src="https://img.shields.io/github/license/AsBuiltReport/AsBuiltReport.Rubrik.CDM.svg" /></a>
     <a href="https://github.com/AsBuiltReport/AsBuiltReport.Rubrik.CDM/graphs/contributors" alt="GitHub Contributors">
-        <img src="https://img.shields.io/github/contributors/AsBuiltReport/AsBuiltReport.Rubrik.CDM.svg"/></a>
-</p>
-<p align="center">
-    <a href="https://twitter.com/AsBuiltReport" alt="Twitter">
-            <img src="https://img.shields.io/twitter/follow/AsBuiltReport.svg?style=social"/></a>
+        <img src="https://img.shields.io/github/contributors/AsBuiltReport/AsBuiltReport.Rubrik.CDM.svg?color=012456"/></a>
 </p>
 
-# Rubrik CDM As Built Report
-
-## :books: Sample Reports
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/sample-reports.svg" alt="" width="24" height="24" align="top"> Sample Reports
 
 ### Sample Report 1 - Default Style
 
@@ -39,14 +33,14 @@ Sample Rubrik report using custom report styles
 
 ![](Samples/Rubrik-Report-2.png)
 
-# :beginner: Getting Started
+# <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/getting-started.svg" alt="" width="28" height="28" align="top"> Getting Started
 
 Below are the instructions on how to install, configure, and generate a Rubrik CDM As Built report.
 
-## :floppy_disk: Supported Versions
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/supported-versions.svg" alt="" width="24" height="24" align="top"> Supported Versions
 * To be added
 
-## :wrench: System Requirements
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/system-requirements.svg" alt="" width="24" height="24" align="top"> System Requirements
 
 The following PowerShell modules are required for generating a Rubrik As Built report.
 
@@ -55,10 +49,10 @@ Each of these modules can be easily downloaded and installed via the PowerShell 
 - [Rubrik CDM Powershell SDK](https://www.powershellgallery.com/packages/Rubrik/)
 - [AsBuiltReport Module](https://www.powershellgallery.com/packages/AsBuiltReport/)
 
-### :closed_lock_with_key: Required Privileges
+### <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/required-privileges.svg" alt="" width="20" height="20" align="top"> Required Privileges
 
 In order to generate a Rubrik CDM As Built Report, user credentials with the administrator role are required. The use of non-administrative credentials may produce incomplete results.
-## :package: Module Installation
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/module-installation.svg" alt="" width="24" height="24" align="top"> Module Installation
 
 ### Installing the Rubrik SDK for PowerShell
 
@@ -84,7 +78,7 @@ Install-Module -Name AsBuiltReport.Vendor.Product
 e.g. Install-Module -Name AsBuiltReport.Rubrik.CDM
 ```
 
-## :pencil2: Configuration
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/configuration.svg" alt="" width="24" height="24" align="top"> Configuration
 
 The Rubrik CDM As Built Report utilises a JSON file to allow configuration of report information, options, detail and healthchecks.
 
@@ -148,7 +142,7 @@ The table below outlines the default and maximum **InfoLevel** settings for each
 
 The `Healthcheck` section of the Rubrik CDM As Built Report is not currently utilized.
 
-## :computer: Examples
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/examples.svg" alt="" width="24" height="24" align="top"> Examples
 
 - Generate HTML & Word reports with Timestamp
 
@@ -193,7 +187,7 @@ The `Healthcheck` section of the Rubrik CDM As Built Report is not currently uti
    New-AsBuiltReport -Report Rubrik.CDM -Target <targetcluster> -Credential (Import-CliXML -Path <path_to_encrypted_creds>) -Format Word -Orientation Portrait -OutputFolderPath <path_to_generated_report> -ReportConfigFilePath <path_to_AsBuiltReport.Rubrik.CDM.json> -AsBuiltConfigFilePath <path_to_as_built_config> -Verbose
    ```
 
-## :exclamation: Known Issues
+## <img src="https://raw.githubusercontent.com/AsBuiltReport/.github/main/assets/section-icons/known-issues.svg" alt="" width="24" height="24" align="top"> Known Issues
 
 - InfoLevel 3 and above causes "User Not Found" messages to be displayed on the console.
   - While not a show stopper, when running the Rubrik CDM As Built Report with Cluster Info Level of 3 or higher User not found messages are shown in the console. This is the result of Rubrik trying to query deeper information about users who no longer have an LDAP Account within the system. Reports continue to generate regardless of the error shown.
